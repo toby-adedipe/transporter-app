@@ -38,8 +38,7 @@
       "expo-router",
       "expo-secure-store",
       "expo-notifications",
-      "expo-location",
-      ["expo-image", { "photosPermission": false }]
+      "expo-location"
     ]
   }
 }
