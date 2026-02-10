@@ -14,7 +14,7 @@ const initialState: AuthState = {
   refreshToken: null,
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
 };
 
 const authSlice = createSlice({
@@ -33,6 +33,7 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken;
       state.user = action.payload.user;
       state.isAuthenticated = true;
+      state.isLoading = false;
     },
     tokenRefreshed(state, action: PayloadAction<string>) {
       state.token = action.payload;
