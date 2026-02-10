@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { FlatList, RefreshControl, View, StyleSheet } from 'react-native';
 import { ShipmentCard } from './ShipmentCard';
 import { SkeletonLoader, EmptyState } from '@/components/ui';
+import { ErrorView } from '@/components/ErrorView';
 import { useGetAllShipmentsQuery } from '@/store/api/shipmentsApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { colors, spacing } from '@/constants/theme';
@@ -11,7 +12,7 @@ export function ShipmentList() {
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, isFetching, refetch } = useGetAllShipmentsQuery(
+  const { data, isLoading, isFetching, isError, refetch } = useGetAllShipmentsQuery(
     { startDate, endDate, transporterSapId, page, limit: 20 },
     { skip: !transporterSapId },
   );
@@ -32,6 +33,10 @@ export function ShipmentList() {
         ))}
       </View>
     );
+  }
+
+  if (isError) {
+    return <ErrorView message="Failed to load shipments" onRetry={refetch} />;
   }
 
   return (

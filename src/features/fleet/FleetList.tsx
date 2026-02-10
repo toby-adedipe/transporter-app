@@ -3,6 +3,7 @@ import { FlatList, RefreshControl, View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { TruckCard } from './TruckCard';
 import { SearchBar, SkeletonLoader, EmptyState } from '@/components/ui';
+import { ErrorView } from '@/components/ErrorView';
 import { useGetAllAssetsQuery } from '@/store/api/fleetApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { colors, spacing } from '@/constants/theme';
@@ -12,7 +13,7 @@ export function FleetList() {
   const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data, isLoading, isFetching, refetch } = useGetAllAssetsQuery(
+  const { data, isLoading, isFetching, isError, refetch } = useGetAllAssetsQuery(
     { transporterNumber },
     { skip: !transporterNumber },
   );
@@ -36,6 +37,10 @@ export function FleetList() {
         ))}
       </View>
     );
+  }
+
+  if (isError) {
+    return <ErrorView message="Failed to load trucks" onRetry={refetch} />;
   }
 
   return (

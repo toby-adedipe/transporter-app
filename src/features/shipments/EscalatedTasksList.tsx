@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList, RefreshControl, View, Text, StyleSheet } from 'react-native';
 import { Card, StatusBadge, SkeletonLoader, EmptyState } from '@/components/ui';
+import { ErrorView } from '@/components/ErrorView';
 import { formatStatus } from '@/features/visibility/utils';
 import { useGetEscalatedTasksQuery } from '@/store/api/shipmentsApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
@@ -10,7 +11,7 @@ export function EscalatedTasksList() {
   const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
 
-  const { data, isLoading, isFetching, refetch } = useGetEscalatedTasksQuery(
+  const { data, isLoading, isFetching, isError, refetch } = useGetEscalatedTasksQuery(
     {
       createdDateStart: startDate,
       createdDateEnd: endDate,
@@ -29,6 +30,10 @@ export function EscalatedTasksList() {
         ))}
       </View>
     );
+  }
+
+  if (isError) {
+    return <ErrorView message="Failed to load escalated tasks" onRetry={refetch} />;
   }
 
   return (

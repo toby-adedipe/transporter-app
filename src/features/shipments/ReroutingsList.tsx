@@ -2,6 +2,7 @@ import React from 'react';
 import { FlatList, RefreshControl, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, StatusBadge, SkeletonLoader, EmptyState } from '@/components/ui';
+import { ErrorView } from '@/components/ErrorView';
 import { formatStatus } from '@/features/visibility/utils';
 import { useGetReroutingsQuery } from '@/store/api/shipmentsApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
@@ -11,7 +12,7 @@ export function ReroutingsList() {
   const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
 
-  const { data, isLoading, isFetching, refetch } = useGetReroutingsQuery(
+  const { data, isLoading, isFetching, isError, refetch } = useGetReroutingsQuery(
     {
       createdDateStart: startDate,
       createdDateEnd: endDate,
@@ -30,6 +31,10 @@ export function ReroutingsList() {
         ))}
       </View>
     );
+  }
+
+  if (isError) {
+    return <ErrorView message="Failed to load reroutings" onRetry={refetch} />;
   }
 
   return (

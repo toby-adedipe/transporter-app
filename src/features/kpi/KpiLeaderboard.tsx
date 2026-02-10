@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Card, SkeletonLoader, EmptyState } from '@/components/ui';
+import { ErrorView } from '@/components/ErrorView';
 import { useGetKpiLeaderboardQuery } from '@/store/api/kpiApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
@@ -11,7 +12,7 @@ export function KpiLeaderboard() {
   const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
 
-  const { data, isLoading } = useGetKpiLeaderboardQuery(
+  const { data, isLoading, isError, refetch } = useGetKpiLeaderboardQuery(
     { kpiType: 'LOADED_IN_PLANT_TIME', startDate, endDate, top: 10 },
   );
 
@@ -24,6 +25,15 @@ export function KpiLeaderboard() {
         {Array.from({ length: 5 }).map((_, i) => (
           <SkeletonLoader key={i} width="100%" height={44} style={{ marginBottom: spacing.sm }} />
         ))}
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card variant="default" padding="base">
+        <Text style={styles.title}>Leaderboard</Text>
+        <ErrorView message="Failed to load leaderboard" onRetry={refetch} />
       </Card>
     );
   }
