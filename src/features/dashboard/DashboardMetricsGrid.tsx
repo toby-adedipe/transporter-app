@@ -32,7 +32,7 @@ export function DashboardMetricsGrid() {
     refetch();
   }, [refetch]);
 
-  const dashboardData = data?.data as Record<string, unknown> | undefined;
+  const dashboardData = data?.result as Record<string, unknown> | undefined;
 
   if (isLoading) {
     return (

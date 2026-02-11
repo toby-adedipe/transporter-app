@@ -18,7 +18,7 @@ export function FleetList() {
     { skip: !transporterNumber },
   );
 
-  const allTrucks: any[] = Array.isArray(data?.data) ? data.data : [];
+  const allTrucks: any[] = Array.isArray(data?.result) ? data.result : [];
 
   const filteredTrucks = useMemo(() => {
     if (!searchQuery) return allTrucks;

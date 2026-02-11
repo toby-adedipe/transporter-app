@@ -1,10 +1,10 @@
 // Standard API response wrapper
 export interface AppResponse<T> {
-  status: number;
   message: string;
-  data: T;
-  error?: string;
-  timestamp?: string;
+  statusCode?: string;
+  isSuccessful: boolean;
+  time: string;
+  result: T;
 }
 
 // Auth

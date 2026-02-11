@@ -16,7 +16,7 @@ export function KpiLeaderboard() {
     { kpiType: 'LOADED_IN_PLANT_TIME', startDate, endDate, top: 10 },
   );
 
-  const entries: any[] = Array.isArray(data?.data) ? data.data : [];
+  const entries: any[] = Array.isArray(data?.result) ? data.result : [];
 
   if (isLoading) {
     return (

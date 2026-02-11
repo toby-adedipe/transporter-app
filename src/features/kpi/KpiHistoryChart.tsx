@@ -38,7 +38,7 @@ export function KpiHistoryChart() {
     { skip: !transporterNumber },
   );
 
-  const historyData = data?.data as any;
+  const historyData = data?.result as any;
   const dataPoints: number[] = Array.isArray(historyData?.dataPoints)
     ? historyData.dataPoints.map((p: any) => p.value ?? p.score ?? 0)
     : Array.isArray(historyData)

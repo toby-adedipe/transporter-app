@@ -27,16 +27,16 @@ export default function LoginScreen() {
     defaultValues: { email: '', password: '' },
   });
 
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async (formData: LoginForm) => {
     try {
-      const result = await login(data).unwrap();
-      const { token, refreshToken, user } = result.data;
+      const response = await login(formData).unwrap();
+      const { token, refreshToken, user } = response.result;
       await secureStorage.setTokens(token, refreshToken);
       await secureStorage.setUser(user);
       dispatch(setCredentials({ token, refreshToken, user }));
       router.replace('/(tabs)/dashboard');
-    } catch {
-      // error handled by RTK Query error state
+    } catch (err) {
+      console.warn('Login failed:', err);
     }
   };
 
@@ -88,7 +88,11 @@ export default function LoginScreen() {
 
           {error && (
             <Text style={styles.apiError}>
-              {'data' in error ? (error.data as any)?.message ?? 'Login failed' : 'Network error. Please try again.'}
+              {'data' in error
+                ? (error.data as any)?.message ?? 'Login failed'
+                : 'error' in error
+                  ? error.error
+                  : 'Network error. Please try again.'}
             </Text>
           )}
 

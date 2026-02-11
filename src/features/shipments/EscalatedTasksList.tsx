@@ -20,7 +20,7 @@ export function EscalatedTasksList() {
     { skip: !transporterNumber },
   );
 
-  const items: any[] = Array.isArray(data?.data) ? data.data : [];
+  const items: any[] = Array.isArray(data?.result) ? data.result : [];
 
   if (isLoading) {
     return (

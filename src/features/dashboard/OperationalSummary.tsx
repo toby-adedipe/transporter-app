@@ -78,7 +78,7 @@ export function OperationalSummary() {
     { skip: !transporterNumber },
   );
 
-  const operationalData = data?.data as Record<string, unknown> | undefined;
+  const operationalData = data?.result as Record<string, unknown> | undefined;
 
   return (
     <View style={styles.container}>

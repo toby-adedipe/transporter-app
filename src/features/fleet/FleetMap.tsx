@@ -15,7 +15,7 @@ export function FleetMap() {
     { skip: !transporterNumber, pollingInterval: APP_CONFIG.pollingIntervalMs },
   );
 
-  const trucks: any[] = Array.isArray(data?.data) ? data.data : [];
+  const trucks: any[] = Array.isArray(data?.result) ? data.result : [];
   const trucksWithLocation = trucks.filter(
     (t: any) => t.latitude != null && t.longitude != null && !isNaN(t.latitude) && !isNaN(t.longitude),
   );

@@ -17,7 +17,7 @@ export function ShipmentList() {
     { skip: !transporterSapId },
   );
 
-  const items: any[] = Array.isArray(data?.data) ? data.data : [];
+  const items: any[] = Array.isArray(data?.result) ? data.result : [];
 
   const handleLoadMore = useCallback(() => {
     if (items.length >= 20 * page) {

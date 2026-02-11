@@ -19,7 +19,7 @@ export default function DepotVisibilityScreen() {
     { skip: !filter.transporterSapId?.[0] },
   );
 
-  const items: any[] = Array.isArray(data?.data) ? data.data : [];
+  const items: any[] = Array.isArray(data?.result) ? data.result : [];
 
   const renderItem = ({ item }: { item: any }) => (
     <Card variant="default" padding="base">

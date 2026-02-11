@@ -3,7 +3,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL } from '@/constants/config';
 
-const baseQuery = fetchBaseQuery({
+const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
   prepareHeaders: async (headers, { getState }) => {
     const token = (getState() as any).auth.token;
@@ -14,6 +14,28 @@ const baseQuery = fetchBaseQuery({
     return headers;
   },
 });
+
+// Wrap to treat isSuccessful: false as an error
+const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+  args,
+  api,
+  extraOptions,
+) => {
+  const result = await rawBaseQuery(args, api, extraOptions);
+  if (result.data) {
+    const body = result.data as { isSuccessful?: boolean; message?: string };
+    if (body.isSuccessful === false) {
+      return {
+        error: {
+          status: 'CUSTOM_ERROR' as const,
+          data: body,
+          error: body.message ?? 'Request failed',
+        },
+      };
+    }
+  }
+  return result;
+};
 
 const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
   args,
@@ -33,7 +55,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
       );
 
       if (refreshResult.data) {
-        const data = refreshResult.data as { token: string; refreshToken: string };
+        const data = (refreshResult.data as any).result as { token: string; refreshToken: string };
         await SecureStore.setItemAsync('token', data.token);
         await SecureStore.setItemAsync('refreshToken', data.refreshToken);
         api.dispatch({ type: 'auth/tokenRefreshed', payload: data.token });

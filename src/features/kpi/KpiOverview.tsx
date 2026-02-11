@@ -14,7 +14,7 @@ export function KpiOverview() {
     { skip: !transporterNumber },
   );
 
-  const summary = data?.data as any;
+  const summary = data?.result as any;
 
   if (isLoading) {
     return (
