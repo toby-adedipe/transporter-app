@@ -12,11 +12,14 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const user = useAppSelector((s) => s.auth.user);
 
+  const profile = user?.profile;
+  const fullName = profile ? `${profile.firstName} ${profile.lastName}` : '-';
+
   const fields = [
-    { label: 'Name', value: user?.name ?? user?.transporterName ?? '-' },
-    { label: 'Email', value: user?.email ?? '-' },
-    { label: 'Transporter Number', value: user?.transporterNumber ?? '-' },
-    { label: 'SAP ID', value: user?.sapId ?? '-' },
+    { label: 'Name', value: fullName },
+    { label: 'Email', value: user?.username ?? '-' },
+    { label: 'Phone', value: profile?.agentPhone ?? '-' },
+    { label: 'Transporter Number', value: profile?.transporterNumber ?? '-' },
     { label: 'Role', value: user?.role ?? '-' },
   ];
 
@@ -32,7 +35,7 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{(user?.name ?? 'T')[0].toUpperCase()}</Text>
+            <Text style={styles.avatarText}>{(profile?.firstName ?? 'T')[0].toUpperCase()}</Text>
           </View>
         </View>
         <Card variant="default" padding="base">

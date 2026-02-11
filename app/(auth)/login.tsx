@@ -36,7 +36,7 @@ export default function LoginScreen() {
       dispatch(setCredentials({ token, refreshToken, user }));
       router.replace('/(tabs)/dashboard');
     } catch (err) {
-      console.warn('Login failed:', err);
+      console.warn('[Login] Failed:', err);
     }
   };
 

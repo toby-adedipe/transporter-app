@@ -15,16 +15,22 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
-// Wrap to treat isSuccessful: false as an error
+// Wrap to treat isSuccessful: false as an error + log all requests
 const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
   args,
   api,
   extraOptions,
 ) => {
+  const url = typeof args === 'string' ? args : args.url;
+  console.log(`[API] → ${typeof args === 'string' ? 'GET' : (args.method ?? 'GET')} ${url}`);
   const result = await rawBaseQuery(args, api, extraOptions);
-  if (result.data) {
+  if (result.error) {
+    console.log(`[API] ✗ ${url}`, JSON.stringify(result.error, null, 2));
+  } else if (result.data) {
+    console.log(`[API] ✓ ${url}`, JSON.stringify(result.data, null, 2).slice(0, 500));
     const body = result.data as { isSuccessful?: boolean; message?: string };
     if (body.isSuccessful === false) {
+      console.log(`[API] ✗ Business error: ${body.message}`);
       return {
         error: {
           status: 'CUSTOM_ERROR' as const,

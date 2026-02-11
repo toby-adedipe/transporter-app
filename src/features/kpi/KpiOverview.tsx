@@ -2,12 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MetricCard, SkeletonLoader } from '@/components/ui';
 import { useGetKpiSummaryQuery } from '@/store/api/kpiApi';
-import { useAppSelector } from '@/hooks/useAppSelector';
+import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { formatKpiType, getKpiColor } from '@/utils/kpiHelpers';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
 
 export function KpiOverview() {
-  const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
+  const transporterNumber = useTransporterNumber();
 
   const { data, isLoading } = useGetKpiSummaryQuery(
     { transporterNumber },

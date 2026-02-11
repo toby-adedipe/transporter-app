@@ -24,8 +24,11 @@ export default function DashboardScreen() {
     refetch();
   }, [refetch]);
 
-  const subtitle = user?.transporterName
-    ? `Welcome, ${user.transporterName}`
+  const displayName = user?.profile?.firstName
+    ? `${user.profile.firstName} ${user.profile.lastName}`
+    : null;
+  const subtitle = displayName
+    ? `Welcome, ${displayName}`
     : 'Overview of your operations';
 
   return (

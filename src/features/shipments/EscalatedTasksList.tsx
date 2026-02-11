@@ -5,10 +5,11 @@ import { ErrorView } from '@/components/ErrorView';
 import { formatStatus } from '@/features/visibility/utils';
 import { useGetEscalatedTasksQuery } from '@/store/api/shipmentsApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
+import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
 
 export function EscalatedTasksList() {
-  const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
+  const transporterNumber = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
 
   const { data, isLoading, isFetching, isError, refetch } = useGetEscalatedTasksQuery(

@@ -5,12 +5,12 @@ import { TruckCard } from './TruckCard';
 import { SearchBar, SkeletonLoader, EmptyState } from '@/components/ui';
 import { ErrorView } from '@/components/ErrorView';
 import { useGetAllAssetsQuery } from '@/store/api/fleetApi';
-import { useAppSelector } from '@/hooks/useAppSelector';
+import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing } from '@/constants/theme';
 
 export function FleetList() {
   const router = useRouter();
-  const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
+  const transporterNumber = useTransporterNumber();
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data, isLoading, isFetching, isError, refetch } = useGetAllAssetsQuery(

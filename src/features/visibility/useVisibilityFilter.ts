@@ -6,7 +6,7 @@ export function useVisibilityFilter(
   overrides?: Partial<VisibilityFilterDto>,
 ): VisibilityFilterDto {
   const transporterNumber = useAppSelector(
-    (s) => s.auth.user?.transporterNumber ?? '',
+    (s) => s.auth.user?.profile?.transporterNumber ?? s.auth.user?.profileId ?? '',
   );
   const { selectedRegion, truckStatusFilter, truckTypeFilter } = useAppSelector(
     (s) => s.filters,

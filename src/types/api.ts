@@ -16,17 +16,31 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   refreshToken: string;
+  expiresAt: string;
+  issuedAt: string;
   user: TransporterUser;
 }
 
-export interface TransporterUser {
-  id: number;
-  email: string;
-  name: string;
+export interface TransporterProfile {
+  firstName: string;
+  lastName: string;
   transporterNumber: string;
-  transporterName: string;
+  agentAddress: string | null;
+  agentPhone: string;
+  transporterRole: string;
+  agentProfilePictureBase64: string | null;
+  appUserId: number;
+  transporterRegions: string[];
+}
+
+export interface TransporterUser {
+  userId: number;
+  profileId: string;
   role: string;
-  sapId: string;
+  username: string;
+  activeStatus: boolean;
+  profile: TransporterProfile;
+  permissions: string[];
 }
 
 export interface TransporterForgetPasswordRequest {

@@ -5,10 +5,11 @@ import { SkeletonLoader, EmptyState } from '@/components/ui';
 import { ErrorView } from '@/components/ErrorView';
 import { useGetAllShipmentsQuery } from '@/store/api/shipmentsApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
+import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing } from '@/constants/theme';
 
 export function ShipmentList() {
-  const transporterSapId = useAppSelector((s) => s.auth.user?.sapId ?? s.auth.user?.transporterNumber ?? '');
+  const transporterSapId = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
   const [page, setPage] = useState(1);
 

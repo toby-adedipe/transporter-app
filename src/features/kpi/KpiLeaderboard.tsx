@@ -4,12 +4,13 @@ import { Card, SkeletonLoader, EmptyState } from '@/components/ui';
 import { ErrorView } from '@/components/ErrorView';
 import { useGetKpiLeaderboardQuery } from '@/store/api/kpiApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
+import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
 
 const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 
 export function KpiLeaderboard() {
-  const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
+  const transporterNumber = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
 
   const { data, isLoading, isError, refetch } = useGetKpiLeaderboardQuery(

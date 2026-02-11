@@ -4,6 +4,7 @@ import { LineChart } from 'react-native-chart-kit';
 import { FilterChip, SkeletonLoader, EmptyState, Card } from '@/components/ui';
 import { useGetKpiHistoryQuery } from '@/store/api/kpiApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
+import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { formatKpiType } from '@/utils/kpiHelpers';
 import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
 import type { KpiType } from '@/types/api';
@@ -30,7 +31,7 @@ const chartConfig = {
 
 export function KpiHistoryChart() {
   const [selectedKpi, setSelectedKpi] = useState<KpiType>(KPI_TYPES[0]);
-  const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
+  const transporterNumber = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
 
   const { data, isLoading } = useGetKpiHistoryQuery(

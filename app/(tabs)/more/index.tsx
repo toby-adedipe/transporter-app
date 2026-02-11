@@ -52,12 +52,14 @@ export default function MoreIndexScreen() {
         {user && (
           <Card variant="elevated" padding="base" style={styles.profileCard}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{(user.name ?? user.email ?? 'T')[0].toUpperCase()}</Text>
+              <Text style={styles.avatarText}>{(user.profile?.firstName ?? 'T')[0].toUpperCase()}</Text>
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{user.name ?? user.transporterName ?? 'Transporter'}</Text>
-              <Text style={styles.profileEmail}>{user.email}</Text>
-              <Text style={styles.profileId}>ID: {user.transporterNumber}</Text>
+              <Text style={styles.profileName}>
+                {user.profile ? `${user.profile.firstName} ${user.profile.lastName}` : 'Transporter'}
+              </Text>
+              <Text style={styles.profileEmail}>{user.username}</Text>
+              <Text style={styles.profileId}>ID: {user.profile?.transporterNumber ?? user.profileId}</Text>
             </View>
           </Card>
         )}

@@ -2,13 +2,13 @@ import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useGetAllAssetsQuery } from '@/store/api/fleetApi';
-import { useAppSelector } from '@/hooks/useAppSelector';
 import { APP_CONFIG } from '@/constants/config';
+import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { SkeletonLoader } from '@/components/ui';
 import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
 
 export function FleetMap() {
-  const transporterNumber = useAppSelector((s) => s.auth.user?.transporterNumber ?? '');
+  const transporterNumber = useTransporterNumber();
 
   const { data, isLoading } = useGetAllAssetsQuery(
     { transporterNumber },
