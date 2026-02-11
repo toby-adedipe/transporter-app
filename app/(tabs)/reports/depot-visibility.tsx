@@ -3,10 +3,9 @@ import { View, FlatList, Text, StyleSheet, TouchableOpacity, RefreshControl } fr
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Card, StatusBadge, SkeletonLoader, EmptyState } from '@/components/ui';
+import { Card, SkeletonLoader, EmptyState } from '@/components/ui';
 import { VisibilityFilters } from '@/features/visibility/VisibilityFilters';
 import { useVisibilityFilter } from '@/features/visibility/useVisibilityFilter';
-import { mapTruckStatus, formatStatus } from '@/features/visibility/utils';
 import { useGetDepotVisibilityQuery } from '@/store/api/visibilityApi';
 import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
 
@@ -23,13 +22,11 @@ export default function DepotVisibilityScreen() {
 
   const renderItem = ({ item }: { item: any }) => (
     <Card variant="default" padding="base">
-      <View style={styles.row}>
-        <Text style={styles.name}>{item.depotName ?? item.location ?? 'N/A'}</Text>
-        <StatusBadge label={formatStatus(item.status ?? item.truckStatus)} status={mapTruckStatus(item.status ?? item.truckStatus)} />
-      </View>
-      <Text style={styles.detail}>Truck: {item.truckPlate ?? item.registrationNumber ?? 'N/A'}</Text>
-      <Text style={styles.detail}>Duration: {item.duration ?? item.daysAtDepot ?? 'N/A'}</Text>
-      {item.region && <Text style={styles.detail}>Region: {item.region}</Text>}
+      <Text style={styles.name}>{item.depotNamr ?? 'N/A'}</Text>
+      <Text style={styles.detail}>GIT Count: {item.gitCount ?? 0}</Text>
+      <Text style={styles.detail}>Shipments: {item.totalShipmentCount ?? 0}</Text>
+      <Text style={styles.detail}>Standing Trucks: {item.totalStandingTruckCount ?? 0}</Text>
+      <Text style={styles.detail}>Avg CICO: {item.averageCico ?? 0}</Text>
     </Card>
   );
 

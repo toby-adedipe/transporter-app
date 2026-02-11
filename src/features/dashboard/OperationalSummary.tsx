@@ -22,34 +22,34 @@ interface OperationalMetric {
 
 const OPERATIONAL_METRICS: OperationalMetric[] = [
   {
-    key: 'onTimeDeliveryRate',
-    label: 'On-Time Delivery',
+    key: 'shipmentCompletionRate',
+    label: 'Shipment Completion Rate',
     thresholds: { green: 90, amber: 75 },
     higherIsBetter: true,
   },
   {
-    key: 'truckUtilization',
-    label: 'Truck Utilization',
-    thresholds: { green: 85, amber: 65 },
+    key: 'averageShipmentsPerDay',
+    label: 'Avg Shipments/Day',
+    thresholds: { green: 20, amber: 10 },
     higherIsBetter: true,
   },
   {
-    key: 'averageTurnaroundTime',
-    label: 'Avg Turnaround (hrs)',
-    thresholds: { green: 24, amber: 48 },
+    key: 'totalShipments',
+    label: 'Total Shipments',
+    thresholds: { green: 500, amber: 200 },
+    higherIsBetter: true,
+  },
+  {
+    key: 'completedShipments',
+    label: 'Completed Shipments',
+    thresholds: { green: 400, amber: 150 },
+    higherIsBetter: true,
+  },
+  {
+    key: 'pendingShipments',
+    label: 'Pending Shipments',
+    thresholds: { green: 50, amber: 100 },
     higherIsBetter: false,
-  },
-  {
-    key: 'trackingCompliance',
-    label: 'Tracking Compliance',
-    thresholds: { green: 95, amber: 80 },
-    higherIsBetter: true,
-  },
-  {
-    key: 'loadingEfficiency',
-    label: 'Loading Efficiency',
-    thresholds: { green: 90, amber: 70 },
-    higherIsBetter: true,
   },
 ];
 
@@ -78,7 +78,8 @@ export function OperationalSummary() {
     { skip: !transporterNumber },
   );
 
-  const operationalData = data?.result as Record<string, unknown> | undefined;
+  const operationalData = (data?.result as any)?.operationalMetrics
+    ?.shipmentMetrics as Record<string, unknown> | undefined;
 
   return (
     <View style={styles.container}>
@@ -103,9 +104,11 @@ export function OperationalSummary() {
             const numValue = typeof rawValue === 'number' ? rawValue : null;
             const displayValue =
               numValue !== null
-                ? metric.key === 'averageTurnaroundTime'
-                  ? numValue.toFixed(1)
-                  : `${numValue.toFixed(1)}%`
+                ? metric.key === 'shipmentCompletionRate'
+                  ? `${numValue.toFixed(1)}%`
+                  : metric.key === 'averageShipmentsPerDay'
+                    ? numValue.toFixed(1)
+                    : String(numValue)
                 : '--';
 
             const indicatorColor =

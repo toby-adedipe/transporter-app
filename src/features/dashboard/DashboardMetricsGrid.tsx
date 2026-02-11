@@ -7,12 +7,12 @@ import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing, borderRadius } from '@/constants/theme';
 
 const METRIC_CARDS = [
-  { key: 'totalTrucks', title: 'Total Trucks', color: colors.primary },
-  { key: 'activeTrips', title: 'Active Trips', color: colors.success },
-  { key: 'trucksLoaded', title: 'Trucks Loaded', color: colors.warning },
-  { key: 'atCustomer', title: 'At Customer', color: '#8B5CF6' },
-  { key: 'notTracking', title: 'Not Tracking', color: colors.danger },
-  { key: 'inTransit', title: 'In Transit', color: '#0EA5E9' },
+  { key: 'totalShipments', title: 'Total Shipments', color: colors.primary },
+  { key: 'completedShipments', title: 'Completed', color: colors.success },
+  { key: 'pendingShipments', title: 'Pending', color: colors.warning },
+  { key: 'shipmentCompletionRate', title: 'Completion Rate', color: '#8B5CF6', suffix: '%' },
+  { key: 'averageShipmentsPerDay', title: 'Avg/Day', color: '#0EA5E9' },
+  { key: 'peakActivityHour', title: 'Peak Hour', color: colors.danger },
 ] as const;
 
 export function DashboardMetricsGrid() {
@@ -32,7 +32,8 @@ export function DashboardMetricsGrid() {
     refetch();
   }, [refetch]);
 
-  const dashboardData = data?.result as Record<string, unknown> | undefined;
+  const shipmentMetrics = (data?.result as any)?.operationalMetrics
+    ?.shipmentMetrics as Record<string, unknown> | undefined;
 
   if (isLoading) {
     return (
@@ -53,11 +54,14 @@ export function DashboardMetricsGrid() {
   return (
     <View style={styles.grid}>
       {METRIC_CARDS.map((card) => {
-        const rawValue = dashboardData?.[card.key];
+        const rawValue = shipmentMetrics?.[card.key];
+        const suffix = 'suffix' in card ? card.suffix : '';
         const value =
-          typeof rawValue === 'number' || typeof rawValue === 'string'
-            ? rawValue
-            : '--';
+          typeof rawValue === 'number'
+            ? `${rawValue}${suffix}`
+            : typeof rawValue === 'string'
+              ? rawValue
+              : '--';
 
         return (
           <View key={card.key} style={styles.cardWrapper}>

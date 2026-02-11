@@ -14,7 +14,7 @@ export function KpiLeaderboard() {
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
 
   const { data, isLoading, isError, refetch } = useGetKpiLeaderboardQuery(
-    { kpiType: 'LOADED_IN_PLANT_TIME', startDate, endDate, top: 10 },
+    { kpiType: 'AVERAGE_SCORE_CARD', startDate, endDate, top: 10 },
   );
 
   const entries: any[] = Array.isArray(data?.result) ? data.result : [];

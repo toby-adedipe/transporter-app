@@ -10,10 +10,14 @@ import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
 import type { KpiType } from '@/types/api';
 
 const KPI_TYPES: KpiType[] = [
-  'LOADED_IN_PLANT_TIME',
-  'LOADED_NOT_MOVING_TIME',
-  'TRUCKS_NOT_TRACKING',
-  'TRUCKS_YET_TO_LOAD_7_DAYS_PLUS',
+  'DISPATCH_VOLUME',
+  'GIGO',
+  'CICO_CUSTOMER',
+  'LEAD_TIME',
+  'OTD_RING_1',
+  'AVERAGE_SCORE_CARD',
+  'AVAILABILITY',
+  'VIOLATION_RATE',
 ];
 
 const screenWidth = Dimensions.get('window').width;

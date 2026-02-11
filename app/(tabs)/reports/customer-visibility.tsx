@@ -24,12 +24,11 @@ export default function CustomerVisibilityScreen() {
   const renderItem = ({ item }: { item: any }) => (
     <Card variant="default" padding="base">
       <View style={styles.row}>
-        <Text style={styles.name}>{item.customerName ?? item.shipToName ?? 'N/A'}</Text>
-        <StatusBadge label={formatStatus(item.status ?? item.truckStatus)} status={mapTruckStatus(item.status ?? item.truckStatus)} />
+        <Text style={styles.name} numberOfLines={1}>{item.customerName ?? 'N/A'}</Text>
+        <StatusBadge label={formatStatus(item.status ?? '')} status={mapTruckStatus(item.status ?? '')} />
       </View>
-      <Text style={styles.detail}>Truck: {item.truckPlate ?? item.registrationNumber ?? 'N/A'}</Text>
-      <Text style={styles.detail}>Duration: {item.duration ?? item.daysAtCustomer ?? 'N/A'}</Text>
-      {item.region && <Text style={styles.detail}>Region: {item.region}</Text>}
+      <Text style={styles.detail}>Buffer Run Rate: {item.dailyBufferRunRate ?? 'N/A'}</Text>
+      <Text style={styles.detail}>Shipments: {item.totalShipmentCount ?? 'N/A'}</Text>
     </Card>
   );
 

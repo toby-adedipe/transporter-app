@@ -40,10 +40,12 @@ export function VisibilityFilters() {
 const styles = StyleSheet.create({
   scroll: {
     flexGrow: 0,
+    overflow: 'visible',
   },
   container: {
     paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
     gap: spacing.sm,
   },
 });

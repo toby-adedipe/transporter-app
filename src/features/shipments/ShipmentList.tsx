@@ -14,7 +14,7 @@ export function ShipmentList() {
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isFetching, isError, refetch } = useGetAllShipmentsQuery(
-    { startDate, endDate, transporterSapId, page, limit: 20 },
+    { startDate, endDate, transporterSapId, page, limit: 20, region: 'ALL', status: 'ALL' },
     { skip: !transporterSapId },
   );
 
