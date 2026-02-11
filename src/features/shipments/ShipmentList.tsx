@@ -18,7 +18,8 @@ export function ShipmentList() {
     { skip: !transporterSapId },
   );
 
-  const items: any[] = Array.isArray(data?.result) ? data.result : [];
+  const resultObj = data?.result as any;
+  const items: any[] = Array.isArray(resultObj?.content) ? resultObj.content : Array.isArray(resultObj) ? resultObj : [];
 
   const handleLoadMore = useCallback(() => {
     if (items.length >= 20 * page) {
@@ -43,15 +44,15 @@ export function ShipmentList() {
   return (
     <FlatList
       data={items}
-      keyExtractor={(item, index) => item.logonOrderNumber ?? item.id?.toString() ?? String(index)}
+      keyExtractor={(item, index) => item.shipmentNumber ?? item.logon ?? String(index)}
       renderItem={({ item }) => (
         <ShipmentCard
-          logon={item.logonOrderNumber ?? item.logon}
-          truckPlate={item.truckPlate ?? item.registrationNumber}
-          status={item.status ?? item.shipmentStatus}
-          origin={item.origin ?? item.plantName}
-          destination={item.destination ?? item.customerName}
-          dispatchDate={item.dispatchDate ?? item.createdDate}
+          logon={item.logon ?? item.shipmentNumber}
+          truckPlate={item.truckPlate}
+          status={item.shipmentStatus ?? item.leadTimeSla}
+          origin={item.plant}
+          destination={item.customerName}
+          dispatchDate={item.dispatchDate ? new Date(item.dispatchDate).toLocaleDateString() : undefined}
         />
       )}
       contentContainerStyle={styles.list}
