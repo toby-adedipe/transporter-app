@@ -1,20 +1,23 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MetricCard, SkeletonLoader } from '@/components/ui';
-import { useGetKpiSummaryQuery } from '@/store/api/kpiApi';
+import { useGetKpiRankingsQuery } from '@/store/api/kpiApi';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
+import { useAppSelector } from '@/hooks/useAppSelector';
 import { formatKpiType, getKpiColor } from '@/utils/kpiHelpers';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
 
 export function KpiOverview() {
   const transporterNumber = useTransporterNumber();
+  const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
 
-  const { data, isLoading } = useGetKpiSummaryQuery(
-    { transporterNumber },
+  const { data, isLoading } = useGetKpiRankingsQuery(
+    { transporterNumber, startDate, endDate },
     { skip: !transporterNumber },
   );
 
-  const summary = data?.result as any;
+  const resultData = data?.result as any;
+  const rankings: any[] = resultData?.rankings ?? [];
 
   if (isLoading) {
     return (
@@ -29,27 +32,29 @@ export function KpiOverview() {
     );
   }
 
-  const overallRank = summary?.overallRank ?? summary?.rank ?? '-';
-  const kpiScores: any[] = summary?.kpiScores ?? summary?.rankings ?? [];
+  const bestRank = rankings.length > 0
+    ? Math.min(...rankings.map((r: any) => r.rank ?? Infinity))
+    : '-';
+  const totalTransporters = rankings.length > 0 ? rankings[0]?.populationCount : null;
 
   return (
     <View style={styles.container}>
       <View style={styles.rankCard}>
-        <Text style={styles.rankLabel}>Overall Ranking</Text>
-        <Text style={styles.rankValue}>#{overallRank}</Text>
-        {summary?.totalTransporters && (
-          <Text style={styles.rankTotal}>out of {summary.totalTransporters} transporters</Text>
+        <Text style={styles.rankLabel}>Best Ranking</Text>
+        <Text style={styles.rankValue}>#{bestRank}</Text>
+        {totalTransporters && (
+          <Text style={styles.rankTotal}>out of {totalTransporters} transporters</Text>
         )}
       </View>
 
-      {kpiScores.length > 0 && (
+      {rankings.length > 0 && (
         <View style={styles.grid}>
-          {kpiScores.map((kpi: any, index: number) => (
+          {rankings.map((kpi: any, index: number) => (
             <MetricCard
               key={kpi.kpiType ?? index}
               title={formatKpiType(kpi.kpiType ?? '')}
-              value={kpi.score ?? kpi.value ?? '-'}
-              accentColor={getKpiColor(kpi.score ?? 0)}
+              value={kpi.metricValue ?? '-'}
+              accentColor={getKpiColor(kpi.metricValue ?? 0)}
               subtitle={kpi.rank ? `Rank #${kpi.rank}` : undefined}
             />
           ))}

@@ -65,7 +65,7 @@ export function KpiLeaderboard() {
               </Text>
               {isCurrentUser && <Text style={styles.youLabel}>You</Text>}
             </View>
-            <Text style={styles.score}>{entry.score ?? entry.value ?? '-'}</Text>
+            <Text style={styles.score}>{entry.metricValue ?? '-'}</Text>
           </View>
         );
       })}

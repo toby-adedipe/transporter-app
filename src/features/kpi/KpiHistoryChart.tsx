@@ -44,16 +44,16 @@ export function KpiHistoryChart() {
   );
 
   const historyData = data?.result as any;
-  const dataPoints: number[] = Array.isArray(historyData?.dataPoints)
-    ? historyData.dataPoints.map((p: any) => p.value ?? p.score ?? 0)
+  const history: any[] = Array.isArray(historyData?.history)
+    ? historyData.history
     : Array.isArray(historyData)
-      ? historyData.map((p: any) => p.value ?? p.score ?? 0)
+      ? historyData
       : [];
-  const labels: string[] = Array.isArray(historyData?.dataPoints)
-    ? historyData.dataPoints.map((p: any) => p.label ?? p.date?.slice(5, 10) ?? '')
-    : Array.isArray(historyData)
-      ? historyData.map((p: any) => p.label ?? p.date?.slice(5, 10) ?? '')
-      : [];
+  const dataPoints: number[] = history.map((p: any) => p.metricValue ?? p.value ?? p.score ?? 0);
+  const labels: string[] = history.map((p: any) => {
+    const dateStr = p.calculationWindowStart ?? p.date ?? '';
+    return dateStr ? dateStr.slice(5, 10) : '';
+  });
 
   const hasData = dataPoints.length > 0;
 
