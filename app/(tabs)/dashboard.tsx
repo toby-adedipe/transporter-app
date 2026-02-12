@@ -3,7 +3,8 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { Badge } from '@/components/ui';
 import { DashboardMetricsGrid } from '@/features/dashboard/DashboardMetricsGrid';
-import { OperationalSummary } from '@/features/dashboard/OperationalSummary';
+import { KpiSummary } from '@/features/dashboard/KpiSummary';
+import { FleetSummary } from '@/features/dashboard/FleetSummary';
 import { QuickActions } from '@/features/dashboard/QuickActions';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useGetComprehensiveDashboardQuery } from '@/store/api/dashboardApi';
@@ -57,7 +58,8 @@ export default function DashboardScreen() {
         }
       >
         <DashboardMetricsGrid />
-        <OperationalSummary />
+        <KpiSummary />
+        <FleetSummary />
         <QuickActions />
       </ScrollView>
     </View>
