@@ -8,11 +8,27 @@ interface TruckLocationParams {
   radius?: number;
 }
 
+interface TruckQueryParams {
+  registrationNumbers?: string[];
+  transporterNumbers?: string[];
+  truckStatuses?: string[];
+  truckTypes?: string[];
+  geofenceId?: number;
+}
+
 const fleetApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllAssets: builder.query<AppResponse<unknown>, AssetFilterDto>({
       query: (body) => ({
         url: '/trucks/getAllAssets',
+        method: 'POST',
+        body,
+      }),
+      providesTags: ['Fleet'],
+    }),
+    queryTruckEntities: builder.query<AppResponse<unknown>, TruckQueryParams>({
+      query: (body) => ({
+        url: '/trucks/queryTruckEntities',
         method: 'POST',
         body,
       }),
@@ -30,4 +46,4 @@ const fleetApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetAllAssetsQuery, useGetTruckLocationQuery } = fleetApi;
+export const { useGetAllAssetsQuery, useQueryTruckEntitiesQuery, useGetTruckLocationQuery } = fleetApi;
