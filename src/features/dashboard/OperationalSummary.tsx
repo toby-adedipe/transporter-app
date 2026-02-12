@@ -78,8 +78,9 @@ export function OperationalSummary() {
     { skip: !transporterNumber },
   );
 
-  const operationalData = (data?.result as any)?.operationalMetrics
-    ?.shipmentMetrics as Record<string, unknown> | undefined;
+  const resultData = data?.result as any;
+  const operationalData = (resultData?.shipmentMetrics ??
+    resultData?.operationalMetrics?.shipmentMetrics) as Record<string, unknown> | undefined;
 
   return (
     <View style={styles.container}>
