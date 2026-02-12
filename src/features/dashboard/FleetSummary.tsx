@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SkeletonLoader } from '@/components/ui';
-import { useGetAllAssetsQuery } from '@/store/api/fleetApi';
+import { useGetTransporterAssetsQuery } from '@/store/api/fleetApi';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
 
@@ -17,9 +17,11 @@ interface FleetMetric {
 export function FleetSummary() {
   const transporterNumber = useTransporterNumber();
 
-  const { data, isLoading } = useGetAllAssetsQuery(
+  const { data, isLoading } = useGetTransporterAssetsQuery(
     {
-      transporterNumber,
+      transporterNumber: transporterNumber!,
+      page: 0,
+      size: 1000,
     },
     { skip: !transporterNumber },
   );

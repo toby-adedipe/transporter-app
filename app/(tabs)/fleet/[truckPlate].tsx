@@ -5,26 +5,32 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card, SkeletonLoader, EmptyState } from '@/components/ui';
 import { ErrorView } from '@/components/ErrorView';
-import { useGetAllAssetsQuery } from '@/store/api/fleetApi';
+import { useGetTransporterAssetsQuery } from '@/store/api/fleetApi';
+import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
 
 export default function TruckDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { truckPlate } = useLocalSearchParams<{ truckPlate: string }>();
+  const transporterNumber = useTransporterNumber();
 
-  const { data, isLoading, isError, refetch, isFetching } = useGetAllAssetsQuery(
-    { registrationNumbers: [truckPlate] },
-    { skip: !truckPlate },
+  const { data, isLoading, isError, refetch, isFetching } = useGetTransporterAssetsQuery(
+    {
+      transporterNumber: transporterNumber!,
+      page: 0,
+      size: 1000,
+    },
+    { skip: !truckPlate || !transporterNumber },
   );
 
   const resultData = data?.result as any;
-  const trucks: any[] = Array.isArray(resultData?.content)
+  const allTrucks: any[] = Array.isArray(resultData?.content)
     ? resultData.content
     : Array.isArray(resultData)
       ? resultData
       : [];
-  const truck = trucks.length > 0 ? trucks[0] : null;
+  const truck = allTrucks.find((t: any) => t.registrationNumber === truckPlate);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

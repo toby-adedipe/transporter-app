@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { TruckCard } from './TruckCard';
 import { SearchBar, SkeletonLoader, EmptyState } from '@/components/ui';
 import { ErrorView } from '@/components/ErrorView';
-import { useGetAllAssetsQuery } from '@/store/api/fleetApi';
+import { useGetTransporterAssetsQuery } from '@/store/api/fleetApi';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing } from '@/constants/theme';
 
@@ -13,12 +13,21 @@ export function FleetList() {
   const transporterNumber = useTransporterNumber();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data, isLoading, isFetching, isError, refetch } = useGetAllAssetsQuery(
-    { transporterNumber },
+  const { data, isLoading, isFetching, isError, refetch } = useGetTransporterAssetsQuery(
+    {
+      transporterNumber: transporterNumber!,
+      page: 0,
+      size: 1000,
+    },
     { skip: !transporterNumber },
   );
 
-  const allTrucks: any[] = Array.isArray(data?.result) ? data.result : [];
+  const resultData = data?.result as any;
+  const allTrucks: any[] = Array.isArray(resultData?.content)
+    ? resultData.content
+    : Array.isArray(resultData)
+      ? resultData
+      : [];
 
   const filteredTrucks = useMemo(() => {
     if (!searchQuery) return allTrucks;
