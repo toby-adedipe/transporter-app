@@ -23,8 +23,8 @@ const QUICK_ACTIONS: QuickAction[] = [
     route: '/(tabs)/shipments',
   },
   {
-    label: 'Fleet Map',
-    icon: 'map-outline',
+    label: 'Fleet',
+    icon: 'car-outline',
     route: '/(tabs)/fleet',
   },
   {
