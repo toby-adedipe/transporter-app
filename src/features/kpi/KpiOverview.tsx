@@ -51,7 +51,7 @@ export function KpiOverview() {
         <View style={styles.grid}>
           {rankings.map((kpi: any, index: number) => (
             <MetricCard
-              key={kpi.kpiType ?? index}
+              key={`${kpi.kpiType}-${index}`}
               title={formatKpiType(kpi.kpiType ?? '')}
               value={kpi.metricValue ?? '-'}
               accentColor={getKpiColor(kpi.metricValue ?? 0)}
