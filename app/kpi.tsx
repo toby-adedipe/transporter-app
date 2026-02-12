@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { KpiOverview } from '@/features/kpi/KpiOverview';
 import { KpiHistoryChart } from '@/features/kpi/KpiHistoryChart';
-import { KpiLeaderboard } from '@/features/kpi/KpiLeaderboard';
 import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
 
 export default function KpiScreen() {
@@ -31,7 +30,6 @@ export default function KpiScreen() {
       >
         <KpiOverview />
         <KpiHistoryChart />
-        <KpiLeaderboard />
       </ScrollView>
     </View>
   );
