@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card, SkeletonLoader, EmptyState } from '@/components/ui';
 import { ErrorView } from '@/components/ErrorView';
-import { useQueryTruckEntitiesQuery } from '@/store/api/fleetApi';
+import { useGetAllAssetsQuery } from '@/store/api/fleetApi';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
 
 export default function TruckDetailScreen() {
@@ -13,7 +13,7 @@ export default function TruckDetailScreen() {
   const insets = useSafeAreaInsets();
   const { truckPlate } = useLocalSearchParams<{ truckPlate: string }>();
 
-  const { data, isLoading, isError, refetch, isFetching } = useQueryTruckEntitiesQuery(
+  const { data, isLoading, isError, refetch, isFetching } = useGetAllAssetsQuery(
     { registrationNumbers: [truckPlate] },
     { skip: !truckPlate },
   );
