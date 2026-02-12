@@ -17,7 +17,12 @@ export function KpiLeaderboard() {
     { kpiType: 'AVERAGE_SCORE_CARD', startDate, endDate, top: 10 },
   );
 
-  const entries: any[] = Array.isArray(data?.result) ? data.result : [];
+  const resultData = data?.result as any;
+  const entries: any[] = Array.isArray(resultData?.leaderboard)
+    ? resultData.leaderboard
+    : Array.isArray(data?.result)
+      ? data.result
+      : [];
 
   if (isLoading) {
     return (

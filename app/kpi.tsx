@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, RefreshControl, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KpiOverview } from '@/features/kpi/KpiOverview';
 import { KpiHistoryChart } from '@/features/kpi/KpiHistoryChart';
 import { KpiLeaderboard } from '@/features/kpi/KpiLeaderboard';
@@ -10,7 +9,6 @@ import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
 
 export default function KpiScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(() => {
@@ -19,7 +17,7 @@ export default function KpiScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
