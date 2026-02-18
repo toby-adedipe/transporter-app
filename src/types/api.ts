@@ -200,3 +200,51 @@ export type KpiType =
   | 'VIOLATION_RATE'
   | 'SKMD'
   | 'HRD';
+
+export interface KpiFilterDto {
+  transporterNumbers?: string[];
+  regions?: Region[];
+  startDate: string;
+  endDate: string;
+  customerCodes?: string[];
+  productCodes?: string[];
+  completedTripsOnly?: boolean;
+  minVolume?: number;
+  maxVolume?: number;
+}
+
+export interface KpiMetricDetail {
+  actual: number | null;
+  expected: number | null;
+  variance: number | null;
+  unitOfMeasurement?: string;
+  kpiDescription?: string;
+  formula?: string;
+  rankings?: Record<string, string | number | null>;
+}
+
+export interface KpiV2AggregatedResult {
+  kpiMetrics: Record<string, KpiMetricDetail>;
+}
+
+export interface KpiAiAnalysisMetric {
+  name: string;
+  description: string;
+  actual: number;
+  expected: number;
+  variance: number;
+  unit: string;
+}
+
+export interface KpiAiAnalysisRequest {
+  transporterNumber: string;
+  startDate: string;
+  endDate: string;
+  metrics: KpiAiAnalysisMetric[];
+}
+
+export interface KpiAiAnalysisResult {
+  summary?: string;
+  insights?: string[];
+  recommendations?: string[];
+}

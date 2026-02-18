@@ -31,8 +31,8 @@ export default function DepotVisibilityScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
@@ -62,7 +62,7 @@ export default function DepotVisibilityScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.base, paddingVertical: spacing.md, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.base, paddingBottom: spacing.md, backgroundColor: colors.surface },
   backBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.textPrimary },
   list: { padding: spacing.base, gap: spacing.md },

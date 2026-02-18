@@ -2,6 +2,9 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ??
   'https://staging-812204315267.us-central1.run.app';
 
+export const AI_INSIGHTS_URL = process.env.EXPO_PUBLIC_AI_INSIGHTS_URL ?? '';
+export const AI_INSIGHTS_API_KEY = process.env.EXPO_PUBLIC_AI_INSIGHTS_API_KEY ?? '';
+
 export const APP_CONFIG = {
   defaultPageSize: 20,
   tokenRefreshThresholdMs: 5 * 60 * 1000,

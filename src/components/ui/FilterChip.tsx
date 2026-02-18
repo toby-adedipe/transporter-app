@@ -24,10 +24,12 @@ export function FilterChip({ label, selected, onPress }: FilterChipProps) {
 
 const styles = StyleSheet.create({
   chip: {
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
+    minHeight: 36,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm + 1,
     borderRadius: borderRadius.full,
     borderWidth: 1,
+    justifyContent: 'center',
   },
   selected: {
     backgroundColor: colors.primary,
@@ -39,6 +41,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fontSize.sm,
+    lineHeight: 20,
     fontWeight: fontWeight.medium,
   },
   selectedLabel: {

@@ -21,6 +21,7 @@ export function formatKpiType(type: string): string {
   return (
     KPI_DISPLAY_NAMES[type] ??
     type
+      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
       .replace(/_/g, ' ')
       .toLowerCase()
       .replace(/\b\w/g, (c) => c.toUpperCase())

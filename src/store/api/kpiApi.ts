@@ -1,5 +1,14 @@
 import { baseApi } from '@/store/api/baseApi';
-import type { AppResponse, RankingComparisonRequest } from '@/types/api';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { AI_INSIGHTS_API_KEY, AI_INSIGHTS_URL } from '@/constants/config';
+import type {
+  AppResponse,
+  KpiAiAnalysisRequest,
+  KpiAiAnalysisResult,
+  KpiFilterDto,
+  KpiV2AggregatedResult,
+  RankingComparisonRequest,
+} from '@/types/api';
 
 interface KpiRankingsParams {
   transporterNumber: string;
@@ -32,8 +41,51 @@ interface KpiLeaderboardParams {
   top?: number;
 }
 
+const AI_INSIGHTS_PATH = '/insights/transporter/mobile-analysis';
+
+const resolveAiInsightsUrl = (): string => {
+  if (!AI_INSIGHTS_URL) return '';
+  if (AI_INSIGHTS_URL.includes(AI_INSIGHTS_PATH)) return AI_INSIGHTS_URL;
+  return `${AI_INSIGHTS_URL.replace(/\/+$/, '')}${AI_INSIGHTS_PATH}`;
+};
+
 const kpiApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getKpiV2Aggregated: builder.query<AppResponse<KpiV2AggregatedResult>, KpiFilterDto>({
+      query: (body) => ({
+        url: '/kpi/v2/metrics/aggregated',
+        method: 'POST',
+        body,
+      }),
+      providesTags: ['KPI'],
+    }),
+    analyzeKpiMetrics: builder.mutation<AppResponse<KpiAiAnalysisResult>, KpiAiAnalysisRequest>({
+      queryFn: async (body, _api, _extraOptions, baseQuery) => {
+        const insightsUrl = resolveAiInsightsUrl();
+        if (!insightsUrl || !AI_INSIGHTS_API_KEY) {
+          return {
+            error: {
+              status: 'CUSTOM_ERROR',
+              data: { message: 'AI insights endpoint is not configured' },
+              error: 'AI insights endpoint is not configured',
+            } as FetchBaseQueryError,
+          };
+        }
+
+        const result = await baseQuery({
+          url: insightsUrl,
+          method: 'POST',
+          body,
+          headers: {
+            'x-api-key': AI_INSIGHTS_API_KEY,
+          },
+        });
+
+        return result.error
+          ? { error: result.error as FetchBaseQueryError }
+          : { data: result.data as AppResponse<KpiAiAnalysisResult> };
+      },
+    }),
     getKpiRankings: builder.query<AppResponse<unknown>, KpiRankingsParams>({
       query: ({ transporterNumber, startDate, endDate, region, kpiTypes }) => ({
         url: `/api/v1/kpi/rankings/${transporterNumber}`,
@@ -73,6 +125,8 @@ const kpiApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetKpiV2AggregatedQuery,
+  useAnalyzeKpiMetricsMutation,
   useGetKpiRankingsQuery,
   useGetKpiHistoryQuery,
   useGetKpiSummaryQuery,

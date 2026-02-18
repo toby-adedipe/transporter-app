@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { FilterChip } from '@/components/ui';
 import { useAppSelector, useAppDispatch } from '@/hooks/useAppSelector';
 import { setRegion } from '@/store/slices/filtersSlice';
-import { spacing } from '@/constants/theme';
+import { colors, spacing } from '@/constants/theme';
 import type { Region } from '@/types/api';
 
 const REGIONS: { label: string; value: Region }[] = [
@@ -40,12 +40,15 @@ export function VisibilityFilters() {
 const styles = StyleSheet.create({
   scroll: {
     flexGrow: 0,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
     overflow: 'visible',
   },
   container: {
     paddingHorizontal: spacing.base,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
     gap: spacing.sm,
   },
 });
