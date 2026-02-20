@@ -50,7 +50,27 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 ) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.error && result.error.status === 401) {
+  const shouldAttemptRefresh = (() => {
+    if (!result.error || result.error.status !== 401) return false;
+    const errorData = (result.error as any).data;
+    const candidates = [
+      typeof errorData?.message === 'string' ? errorData.message : '',
+      typeof errorData?.detail === 'string' ? errorData.detail : '',
+      typeof (result.error as any).error === 'string' ? (result.error as any).error : '',
+    ]
+      .map((entry) => entry.toLowerCase())
+      .filter(Boolean);
+
+    // 401 from insights scope/claim issues should not trigger token refresh or force logout.
+    const nonRefreshable401 = candidates.some(
+      (entry) =>
+        entry.includes('missing') && entry.includes('transporternumber') && entry.includes('claim'),
+    );
+
+    return !nonRefreshable401;
+  })();
+
+  if (result.error && result.error.status === 401 && shouldAttemptRefresh) {
     const refreshToken = await SecureStore.getItemAsync('refreshToken');
 
     if (refreshToken) {

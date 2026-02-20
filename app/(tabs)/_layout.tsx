@@ -37,6 +37,12 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="dashboard-chat"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="shipments"
         options={{
           title: 'Shipments',

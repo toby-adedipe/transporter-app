@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
-import { Badge } from '@/components/ui';
 import { DashboardMetricsGrid } from '@/features/dashboard/DashboardMetricsGrid';
 import { KpiSummary } from '@/features/dashboard/KpiSummary';
 import { FleetSummary } from '@/features/dashboard/FleetSummary';
@@ -9,9 +10,10 @@ import { QuickActions } from '@/features/dashboard/QuickActions';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useGetComprehensiveDashboardQuery } from '@/store/api/dashboardApi';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
-import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
+import { colors, spacing, borderRadius } from '@/constants/theme';
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
   const transporterNumber = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
@@ -22,8 +24,13 @@ export default function DashboardScreen() {
   );
 
   const handleRefresh = useCallback(() => {
-    refetch();
-  }, [refetch]);
+    if (!transporterNumber) return;
+    try {
+      refetch();
+    } catch {
+      // Can happen if pull-to-refresh fires before query initialization.
+    }
+  }, [refetch, transporterNumber]);
 
   const displayName = user?.profile?.firstName
     ? `${user.profile.firstName} ${user.profile.lastName}`
@@ -37,13 +44,16 @@ export default function DashboardScreen() {
       <ScreenHeader
         title="Dashboard"
         subtitle={subtitle}
-        rightAction={
-          transporterNumber ? (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{transporterNumber}</Text>
-            </View>
-          ) : undefined
-        }
+        rightAction={(
+          <TouchableOpacity
+            style={styles.chatButton}
+            onPress={() => router.push('/(tabs)/dashboard-chat')}
+            accessibilityRole="button"
+            accessibilityLabel="Open assistant"
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        )}
       />
       <ScrollView
         contentContainerStyle={styles.content}
@@ -76,15 +86,12 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     paddingBottom: spacing['3xl'],
   },
-  badge: {
+  chatButton: {
     backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: borderRadius.md,
-  },
-  badgeText: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.semibold,
-    color: colors.primary,
   },
 });

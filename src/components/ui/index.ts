@@ -10,3 +10,4 @@ export { EmptyState } from './EmptyState';
 export { SearchBar } from './SearchBar';
 export { StatusPill } from './StatusPill';
 export { InsightCard } from './InsightCard';
+export { MarkdownViewer } from './MarkdownViewer';

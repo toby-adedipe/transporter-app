@@ -7,6 +7,79 @@ export interface AppResponse<T> {
   result: T;
 }
 
+// Transporter Insights Chat
+export type TransporterChatRole = 'user' | 'assistant' | 'system';
+
+export interface TransporterChatMessage {
+  role: TransporterChatRole;
+  content: string;
+}
+
+export interface TransporterChatRequest {
+  transporterNumber: string;
+  messages: TransporterChatMessage[];
+  startDate?: string;
+  endDate?: string;
+  region?: string;
+  debug?: boolean;
+  forceHandover?: boolean;
+}
+
+export interface TransporterChatResponse {
+  isSuccessful: boolean;
+  message: string;
+  result: {
+    reply: string;
+    dataSources: string[];
+    handoverTriggered?: boolean;
+    handoverEmailSent?: boolean;
+    handoverRecipient?: string;
+    handoverReference?: string;
+  };
+}
+
+// Transporter Insights Truck Search
+export type TruckSearchItem = Record<string, unknown>;
+
+export interface TruckMovementPoint {
+  timestamp?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  status?: string;
+  speed?: number;
+}
+
+export interface TruckDetailLocation {
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  updatedAt?: string;
+  status?: string;
+}
+
+export interface TruckDetailShipment {
+  reference?: string;
+  status?: string;
+  origin?: string;
+  destination?: string;
+  eta?: string;
+  customer?: string;
+  product?: string;
+}
+
+export interface TruckDetailViewModel {
+  plate: string;
+  requestedPlate: string;
+  exactPlateMatch: boolean;
+  fallbackUsed: boolean;
+  status?: string;
+  location: TruckDetailLocation;
+  shipment: TruckDetailShipment;
+  movementHistory: TruckMovementPoint[];
+  source: TruckSearchItem;
+}
+
 // Auth
 export interface LoginRequest {
   email: string;
