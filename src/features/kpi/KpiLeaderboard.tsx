@@ -5,7 +5,8 @@ import { ErrorView } from '@/components/ErrorView';
 import { useGetKpiLeaderboardQuery } from '@/store/api/kpiApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
-import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
+import { colors, spacing, fontSize, fontWeight, fontFamily, borderRadius } from '@/constants/theme';
+import type { KpiLeaderboardEntry } from '@/types/api';
 
 const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 
@@ -17,11 +18,11 @@ export function KpiLeaderboard() {
     { kpiType: 'AVERAGE_SCORE_CARD', startDate, endDate, top: 10 },
   );
 
-  const resultData = data?.result as any;
-  const entries: any[] = Array.isArray(resultData?.leaderboard)
-    ? resultData.leaderboard
-    : Array.isArray(data?.result)
-      ? data.result
+  const leaderboardResult = data?.result;
+  const entries: KpiLeaderboardEntry[] = Array.isArray(leaderboardResult)
+    ? leaderboardResult
+    : Array.isArray(leaderboardResult?.leaderboard)
+      ? leaderboardResult.leaderboard
       : [];
 
   if (isLoading) {
@@ -56,7 +57,7 @@ export function KpiLeaderboard() {
   return (
     <Card variant="default" padding="base">
       <Text style={styles.title}>Leaderboard</Text>
-      {entries.map((entry: any, index: number) => {
+      {entries.map((entry, index) => {
         const isCurrentUser = entry.transporterNumber === transporterNumber;
         const rank = entry.rank ?? index + 1;
         return (
@@ -79,11 +80,17 @@ export function KpiLeaderboard() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.textPrimary, marginBottom: spacing.md },
+  title: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    fontFamily: fontFamily.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -91,22 +98,47 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     marginHorizontal: -spacing.base,
     paddingHorizontal: spacing.base,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     borderBottomWidth: 0,
   },
   rankBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
   },
-  rankText: { fontSize: fontSize.sm, fontWeight: fontWeight.bold, color: colors.textPrimary },
+  rankText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.bold,
+    fontFamily: fontFamily.bold,
+    color: colors.textPrimary,
+  },
   info: { flex: 1 },
-  name: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, color: colors.textPrimary },
-  nameHighlight: { fontWeight: fontWeight.bold, color: colors.primary },
-  youLabel: { fontSize: fontSize.xs, color: colors.primary, fontWeight: fontWeight.semibold },
-  score: { fontSize: fontSize.base, fontWeight: fontWeight.bold, color: colors.textPrimary },
+  name: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    fontFamily: fontFamily.medium,
+    color: colors.textPrimary,
+  },
+  nameHighlight: {
+    fontWeight: fontWeight.bold,
+    fontFamily: fontFamily.bold,
+    color: colors.primary,
+  },
+  youLabel: {
+    fontSize: fontSize.xs,
+    color: colors.primary,
+    fontWeight: fontWeight.semibold,
+    fontFamily: fontFamily.semibold,
+  },
+  score: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    fontFamily: fontFamily.bold,
+    color: colors.textPrimary,
+    letterSpacing: -0.3,
+  },
 });

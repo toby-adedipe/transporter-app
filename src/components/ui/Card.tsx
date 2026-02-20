@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { colors, spacing, borderRadius } from '@/constants/theme';
+import { colors, spacing, borderRadius, shadows } from '@/constants/theme';
 
 type SpacingKey = keyof typeof spacing;
 
@@ -33,12 +33,11 @@ export function Card({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     backgroundColor: colors.surface,
   },
   default: {
-    borderWidth: 1,
-    borderColor: colors.border,
+    ...shadows.md,
   },
   outlined: {
     borderWidth: 1,
@@ -46,10 +45,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   elevated: {
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 3,
+    ...shadows.lg,
   },
 });

@@ -7,7 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { colors, fontSize, fontWeight, spacing, borderRadius } from '@/constants/theme';
+import { colors, fontSize, fontWeight, fontFamily, spacing, borderRadius, shadows } from '@/constants/theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -27,6 +27,7 @@ const variantStyles: Record<ButtonVariant, { container: ViewStyle; text: TextSty
     container: {
       backgroundColor: colors.primary,
       borderWidth: 0,
+      ...shadows.sm,
     },
     text: {
       color: colors.surface,
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     alignSelf: 'flex-start',
   },
   fullWidth: {
@@ -146,5 +147,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontWeight: fontWeight.semibold,
+    fontFamily: fontFamily.semibold,
   },
 });

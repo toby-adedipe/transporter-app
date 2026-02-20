@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
+import { colors, spacing, fontSize, fontWeight, fontFamily, borderRadius, shadows } from '@/constants/theme';
 
 interface MetricCardProps {
   title: string;
@@ -53,13 +53,12 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 140,
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: borderRadius.xl,
     overflow: 'hidden',
+    ...shadows.md,
   },
   accentBar: {
-    height: 3,
+    height: 4,
   },
   content: {
     padding: spacing.base,
@@ -67,14 +66,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xs,
     fontWeight: fontWeight.medium,
+    fontFamily: fontFamily.semibold,
     color: colors.textSecondary,
-    letterSpacing: 0.5,
-    marginBottom: spacing.xs,
+    letterSpacing: 0.8,
+    marginBottom: spacing.sm,
   },
   value: {
-    fontSize: fontSize['2xl'],
+    fontSize: fontSize['3xl'],
     fontWeight: fontWeight.bold,
+    fontFamily: fontFamily.bold,
     color: colors.textPrimary,
+    letterSpacing: -0.5,
   },
   footer: {
     flexDirection: 'row',
@@ -84,10 +86,12 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: fontSize.xs,
+    fontFamily: fontFamily.regular,
     color: colors.textTertiary,
   },
   trend: {
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
+    fontFamily: fontFamily.semibold,
   },
 });

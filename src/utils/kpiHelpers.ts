@@ -7,8 +7,8 @@ const KPI_DISPLAY_NAMES: Record<string, string> = {
   OTD_RING_1: 'OTD Ring 1',
   AVG_DISTANCE_PER_TRIP: 'Avg Distance/Trip',
   TRIPS_PER_TRUCK_PER_WEEK: 'Trips/Truck/Week',
-  TI: 'Turnaround In',
-  TO: 'Turnaround Out',
+  TI: 'Transit In',
+  TO: 'Transit Out',
   AVERAGE_SCORE_CARD: 'Avg Score Card',
   AVAILABILITY: 'Availability',
   TOTAL_TRUCKS: 'Total Trucks',
@@ -30,7 +30,7 @@ export function formatKpiType(type: string): string {
 
 export function getKpiColor(score: number, target = 100): string {
   const ratio = score / target;
-  if (ratio >= 0.9) return '#0D9F6E';
-  if (ratio >= 0.7) return '#F59E0B';
-  return '#EF4444';
+  if (ratio >= 0.9) return '#5B9A7D';
+  if (ratio >= 0.7) return '#C49A4A';
+  return '#C0675F';
 }

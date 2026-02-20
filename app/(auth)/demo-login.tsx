@@ -3,40 +3,44 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useLoginMutation } from '@/store/api/authApi';
+import { useDemoLoginMutation } from '@/store/api/authApi';
 import { useAppDispatch } from '@/hooks/useAppSelector';
 import { setCredentials } from '@/store/slices/authSlice';
 import { secureStorage } from '@/utils/secureStorage';
 import { Button, Input } from '@/components/ui';
 import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
 
-const loginSchema = z.object({
-  email: z.string().email('Enter a valid email'),
+const demoLoginSchema = z.object({
+  identifier: z.string().trim().min(1, 'Transporter number or email is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type DemoLoginForm = z.infer<typeof demoLoginSchema>;
 
-export default function LoginScreen() {
+export default function DemoLoginScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [login, { isLoading, error }] = useLoginMutation();
+  const [demoLogin, { isLoading, error }] = useDemoLoginMutation();
 
-  const { control, handleSubmit, formState: { errors } } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<DemoLoginForm>({
+    resolver: zodResolver(demoLoginSchema),
+    defaultValues: { identifier: '', password: '' },
   });
 
-  const onSubmit = async (formData: LoginForm) => {
+  const onSubmit = async (formData: DemoLoginForm) => {
     try {
-      const response = await login(formData).unwrap();
+      const response = await demoLogin(formData).unwrap();
       const { token, refreshToken, user } = response.result;
       await secureStorage.setTokens(token, refreshToken);
       await secureStorage.setUser(user);
       dispatch(setCredentials({ token, refreshToken, user }));
       router.replace('/(tabs)/dashboard');
     } catch (err) {
-      console.warn('[Login] Failed:', err);
+      console.warn('[DemoLogin] Failed:', err);
     }
   };
 
@@ -45,27 +49,27 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View style={styles.logoBadge}>
-            <Text style={styles.logoText}>T</Text>
+            <Text style={styles.logoText}>D</Text>
           </View>
-          <Text style={styles.title}>Transporter</Text>
-          <Text style={styles.subtitle}>Sign in to manage your fleet</Text>
+          <Text style={styles.title}>Demo Login</Text>
+          <Text style={styles.subtitle}>Sign in with transporter number or email</Text>
         </View>
 
         <View style={styles.form}>
           <Controller
             control={control}
-            name="email"
+            name="identifier"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Email"
-                placeholder="you@company.com"
+                label="Transporter Number or Email"
+                placeholder="e.g. TRP12345 or you@company.com"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
-                error={errors.email?.message}
+                error={errors.identifier?.message}
               />
             )}
           />
@@ -97,9 +101,8 @@ export default function LoginScreen() {
           )}
 
           <View style={styles.buttonGap}>
-            <Button title="Sign In" onPress={handleSubmit(onSubmit)} loading={isLoading} fullWidth />
-            <Button title="Use Demo Login" variant="secondary" onPress={() => router.push('/(auth)/demo-login')} fullWidth />
-            <Button title="Forgot Password?" variant="ghost" onPress={() => router.push('/(auth)/forgot-password')} fullWidth />
+            <Button title="Sign In to Demo" onPress={handleSubmit(onSubmit)} loading={isLoading} fullWidth />
+            <Button title="Back to Main Login" variant="ghost" onPress={() => router.push('/(auth)/login')} fullWidth />
           </View>
         </View>
       </ScrollView>
@@ -112,8 +115,12 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
   header: { alignItems: 'center', marginBottom: spacing['3xl'] },
   logoBadge: {
-    width: 64, height: 64, borderRadius: 16,
-    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.base,
   },
   logoText: { color: '#fff', fontSize: 28, fontWeight: fontWeight.bold },
@@ -121,9 +128,13 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: fontSize.base, color: colors.textSecondary, marginTop: spacing.xs },
   form: { gap: spacing.base },
   apiError: {
-    color: colors.danger, fontSize: fontSize.sm,
-    textAlign: 'center', padding: spacing.sm,
-    backgroundColor: colors.dangerLight, borderRadius: 8, overflow: 'hidden',
+    color: colors.danger,
+    fontSize: fontSize.sm,
+    textAlign: 'center',
+    padding: spacing.sm,
+    backgroundColor: colors.dangerLight,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   buttonGap: { gap: spacing.sm, marginTop: spacing.sm },
 });

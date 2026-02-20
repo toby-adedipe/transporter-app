@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
+import { colors, spacing, fontSize, fontWeight, fontFamily, shadows } from '@/constants/theme';
 
 interface ScreenHeaderProps {
   title: string;
@@ -26,13 +26,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.base,
     paddingBottom: spacing.base,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
+    ...shadows.sm,
   },
   textContainer: { flex: 1 },
-  title: { fontSize: fontSize.xl, fontWeight: fontWeight.bold, color: colors.textPrimary },
-  subtitle: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: 2 },
+  title: {
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.bold,
+    fontFamily: fontFamily.bold,
+    color: colors.textPrimary,
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
 });

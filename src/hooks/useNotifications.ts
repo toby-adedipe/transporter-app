@@ -22,7 +22,7 @@ export function useNotifications() {
       } else if (data?.screen === 'fleet') {
         router.push('/(tabs)/fleet');
       } else if (data?.screen === 'kpi') {
-        router.push('/kpi');
+        router.push('/(tabs)/kpi');
       }
     });
 

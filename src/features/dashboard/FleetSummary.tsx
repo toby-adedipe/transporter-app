@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SkeletonLoader } from '@/components/ui';
 import { useGetTransporterAssetsQuery } from '@/store/api/fleetApi';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
+import { mapTruckStatus } from '@/features/visibility/utils';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
 
 interface FleetMetric {
@@ -33,17 +34,26 @@ export function FleetSummary() {
       ? resultData
       : [];
 
-  // Calculate truck statuses
-  const active = trucks.filter((t) => t.status === 'ACTIVE' || t.status === 'IN_TRANSIT').length;
-  const rerouted = trucks.filter((t) => t.status === 'REROUTED' || t.isRerouted).length;
-  const idle = trucks.filter((t) => t.status === 'IDLE' || t.status === 'PARKED').length;
-  const maintenance = trucks.filter((t) => t.status === 'MAINTENANCE' || t.status === 'UNDER_MAINTENANCE').length;
+  const statusCounts = trucks.reduce(
+    (acc, truck) => {
+      const tone = mapTruckStatus(truck.status ?? truck.truckStatus);
+      acc[tone] += 1;
+      return acc;
+    },
+    {
+      success: 0,
+      warning: 0,
+      danger: 0,
+      info: 0,
+      neutral: 0,
+    } as Record<'success' | 'warning' | 'danger' | 'info' | 'neutral', number>,
+  );
 
   const metrics: FleetMetric[] = [
-    { label: 'Active', count: active, color: colors.success, icon: 'checkmark-circle' },
-    { label: 'Rerouted', count: rerouted, color: colors.warning, icon: 'swap-horizontal' },
-    { label: 'Idle', count: idle, color: colors.textSecondary, icon: 'pause-circle' },
-    { label: 'Maintenance', count: maintenance, color: colors.danger, icon: 'construct' },
+    { label: 'In Transit', count: statusCounts.info, color: colors.primary, icon: 'navigate-circle' },
+    { label: 'Offloaded', count: statusCounts.success, color: colors.success, icon: 'checkmark-circle' },
+    { label: 'Plant/Waiting', count: statusCounts.warning, color: colors.warning, icon: 'business' },
+    { label: 'Not Tracking', count: statusCounts.danger + statusCounts.neutral, color: colors.danger, icon: 'pause-circle' },
   ];
 
   if (isLoading) {

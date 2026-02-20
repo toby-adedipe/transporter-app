@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontWeight } from '@/constants/theme';
+import { colors, fontWeight, fontFamily } from '@/constants/theme';
 
 export default function TabsLayout() {
   return (
@@ -11,14 +11,20 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
           backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
+          borderTopColor: 'transparent',
+          borderTopWidth: 0,
           height: 88,
           paddingBottom: 24,
           paddingTop: 8,
+          shadowColor: 'rgba(15, 23, 42, 0.08)',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 1,
+          shadowRadius: 8,
+          elevation: 4,
         },
         tabBarLabelStyle: {
           fontWeight: fontWeight.medium,
+          fontFamily: fontFamily.medium,
           fontSize: 11,
         },
       }}
@@ -42,6 +48,13 @@ export default function TabsLayout() {
         options={{
           title: 'Fleet',
           tabBarIcon: ({ color, size }) => <Ionicons name="car-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="kpi"
+        options={{
+          title: 'KPI',
+          tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, fontSize, fontWeight, spacing, borderRadius } from '@/constants/theme';
+import { colors, fontSize, fontWeight, fontFamily, spacing, borderRadius } from '@/constants/theme';
 
 interface BadgeProps {
   label: string;
@@ -30,5 +30,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: fontSize.xs,
     fontWeight: fontWeight.medium,
+    fontFamily: fontFamily.medium,
   },
 });

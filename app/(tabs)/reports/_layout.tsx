@@ -9,6 +9,7 @@ export default function ReportsLayout() {
       <Stack.Screen name="depot-visibility" />
       <Stack.Screen name="location-visibility" />
       <Stack.Screen name="no-go-zone" />
+      <Stack.Screen name="kpi-breakdown/[metricType]" />
     </Stack>
   );
 }

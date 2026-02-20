@@ -13,6 +13,11 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface DemoLoginRequest {
+  identifier: string;
+  password: string;
+}
+
 export interface LoginResponse {
   token: string;
   refreshToken: string;
@@ -227,6 +232,46 @@ export interface KpiV2AggregatedResult {
   kpiMetrics: Record<string, KpiMetricDetail>;
 }
 
+export interface KpiRankingEntry {
+  kpiType: KpiType | string;
+  metricValue: number | null;
+  rank?: number | null;
+  populationCount?: number | null;
+}
+
+export type KpiRankingsResult = {
+  rankings: KpiRankingEntry[];
+} | KpiRankingEntry[];
+
+export interface KpiHistoryPoint {
+  calculationWindowStart?: string;
+  calculationWindowEnd?: string;
+  period?: string;
+  date?: string;
+  startDate?: string;
+  endDate?: string;
+  windowStart?: string;
+  metricValue?: number | null;
+  actual?: number | null;
+  value?: number | null;
+  score?: number | null;
+}
+
+export type KpiHistoryResult = {
+  history: KpiHistoryPoint[];
+} | KpiHistoryPoint[];
+
+export interface KpiLeaderboardEntry {
+  rank?: number | null;
+  transporterNumber?: string;
+  transporterName?: string;
+  metricValue?: number | null;
+}
+
+export type KpiLeaderboardResult = {
+  leaderboard: KpiLeaderboardEntry[];
+} | KpiLeaderboardEntry[];
+
 export interface KpiAiAnalysisMetric {
   name: string;
   description: string;
@@ -248,3 +293,36 @@ export interface KpiAiAnalysisResult {
   insights?: string[];
   recommendations?: string[];
 }
+
+export interface KpiContributorMetric {
+  key: string;
+  label: string;
+  actual: number | null;
+  expected: number | null;
+  variance: number | null;
+  unit?: string;
+  description?: string;
+}
+
+export type KpiInsightSeverity = 'healthy' | 'warning' | 'critical' | 'unknown';
+export type KpiTrendSignal = 'improving' | 'declining' | 'stable' | 'insufficient_data';
+
+export interface KpiRecommendedAction {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface KpiDeterministicInsight {
+  severity: KpiInsightSeverity;
+  trendSignal: KpiTrendSignal;
+  headline: string;
+  summary: string;
+  gapToTarget: number | null;
+  gapRatio: number | null;
+  trendDeltaPercent: number | null;
+  topContributors: KpiContributorMetric[];
+  actions: KpiRecommendedAction[];
+}
+
+export type KpiContributorMapping = Record<KpiType, string[]>;

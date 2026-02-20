@@ -8,3 +8,5 @@ export { Input } from './Input';
 export { SkeletonLoader } from './SkeletonLoader';
 export { EmptyState } from './EmptyState';
 export { SearchBar } from './SearchBar';
+export { StatusPill } from './StatusPill';
+export { InsightCard } from './InsightCard';

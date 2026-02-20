@@ -6,6 +6,9 @@ import type {
   KpiAiAnalysisRequest,
   KpiAiAnalysisResult,
   KpiFilterDto,
+  KpiHistoryResult,
+  KpiLeaderboardResult,
+  KpiRankingsResult,
   KpiV2AggregatedResult,
   RankingComparisonRequest,
 } from '@/types/api';
@@ -86,14 +89,14 @@ const kpiApi = baseApi.injectEndpoints({
           : { data: result.data as AppResponse<KpiAiAnalysisResult> };
       },
     }),
-    getKpiRankings: builder.query<AppResponse<unknown>, KpiRankingsParams>({
+    getKpiRankings: builder.query<AppResponse<KpiRankingsResult>, KpiRankingsParams>({
       query: ({ transporterNumber, startDate, endDate, region, kpiTypes }) => ({
         url: `/api/v1/kpi/rankings/${transporterNumber}`,
         params: { startDate, endDate, region, kpiTypes },
       }),
       providesTags: ['KPI'],
     }),
-    getKpiHistory: builder.query<AppResponse<unknown>, KpiHistoryParams>({
+    getKpiHistory: builder.query<AppResponse<KpiHistoryResult>, KpiHistoryParams>({
       query: ({ transporterNumber, kpiType, startDate, endDate, region, windowDays }) => ({
         url: `/api/v1/kpi/rankings/${transporterNumber}/history`,
         params: { kpiType, startDate, endDate, region, windowDays },
@@ -107,7 +110,7 @@ const kpiApi = baseApi.injectEndpoints({
       }),
       providesTags: ['KPI'],
     }),
-    getKpiLeaderboard: builder.query<AppResponse<unknown>, KpiLeaderboardParams>({
+    getKpiLeaderboard: builder.query<AppResponse<KpiLeaderboardResult>, KpiLeaderboardParams>({
       query: ({ kpiType, startDate, endDate, region, top }) => ({
         url: '/api/v1/kpi/rankings/leaderboard',
         params: { kpiType, startDate, endDate, region, top },

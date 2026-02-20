@@ -40,7 +40,7 @@ export default function MoreIndexScreen() {
   const menuItems: MenuItem[] = [
     { icon: 'person-outline', label: 'Profile', onPress: () => router.push('/(tabs)/more/profile' as any), showChevron: true },
     { icon: 'settings-outline', label: 'Settings', onPress: () => router.push('/(tabs)/more/settings' as any), showChevron: true },
-    { icon: 'stats-chart-outline', label: 'KPI Metrics', onPress: () => router.push('/kpi'), showChevron: true },
+    { icon: 'stats-chart-outline', label: 'KPI Metrics', onPress: () => router.push('/(tabs)/kpi'), showChevron: true },
     { icon: 'information-circle-outline', label: 'About', onPress: () => Alert.alert('Transporter App', 'Version 1.0.0\nPhase 1 - MVP'), showChevron: false },
     { icon: 'log-out-outline', label: 'Sign Out', onPress: handleLogout, color: colors.danger, showChevron: false },
   ];

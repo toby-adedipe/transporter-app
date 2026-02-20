@@ -6,8 +6,8 @@ import { useGetKpiHistoryQuery } from '@/store/api/kpiApi';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { formatKpiType } from '@/utils/kpiHelpers';
-import { colors, spacing, fontSize, fontWeight } from '@/constants/theme';
-import type { KpiType } from '@/types/api';
+import { colors, spacing, fontSize, fontWeight, fontFamily } from '@/constants/theme';
+import type { KpiHistoryPoint, KpiType } from '@/types/api';
 
 const KPI_TYPES: KpiType[] = [
   'DISPATCH_VOLUME',
@@ -27,10 +27,14 @@ const chartConfig = {
   backgroundGradientFrom: colors.surface,
   backgroundGradientTo: colors.surface,
   decimalPlaces: 1,
-  color: (opacity = 1) => `rgba(26, 115, 232, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
+  color: (opacity = 1) => `rgba(75, 106, 155, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(107, 122, 141, ${opacity})`,
+  fillShadowGradient: '#4B6A9B',
+  fillShadowGradientOpacity: 0.15,
+  strokeWidth: 2.5,
   style: { borderRadius: 12 },
-  propsForDots: { r: '4', strokeWidth: '2', stroke: colors.primary },
+  propsForDots: { r: '5', strokeWidth: '2.5', stroke: colors.primary },
+  propsForBackgroundLines: { stroke: colors.border, strokeDasharray: '' },
 };
 
 export function KpiHistoryChart() {
@@ -43,15 +47,18 @@ export function KpiHistoryChart() {
     { skip: !transporterNumber },
   );
 
-  const historyData = data?.result as any;
-  const history: any[] = Array.isArray(historyData?.history)
-    ? historyData.history
-    : Array.isArray(historyData)
-      ? historyData
+  const historyResult = data?.result;
+  const history: KpiHistoryPoint[] = Array.isArray(historyResult)
+    ? historyResult
+    : Array.isArray(historyResult?.history)
+      ? historyResult.history
       : [];
-  const dataPoints: number[] = history.map((p: any) => p.metricValue ?? p.value ?? p.score ?? 0);
-  const labels: string[] = history.map((p: any) => {
-    const dateStr = p.calculationWindowStart ?? p.date ?? '';
+  const dataPoints: number[] = history.map((p) => {
+    const value = p.metricValue ?? p.value ?? p.score ?? p.actual ?? 0;
+    return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  });
+  const labels: string[] = history.map((p) => {
+    const dateStr = p.calculationWindowStart ?? p.date ?? p.startDate ?? '';
     return dateStr ? dateStr.slice(5, 10) : '';
   });
 
@@ -94,7 +101,13 @@ export function KpiHistoryChart() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.textPrimary, marginBottom: spacing.sm },
-  chipRow: { flexGrow: 0, marginBottom: spacing.md },
+  title: {
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.semibold,
+    fontFamily: fontFamily.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  chipRow: { flexGrow: 0, marginBottom: spacing.base },
   chart: { borderRadius: 12, marginTop: spacing.sm },
 });

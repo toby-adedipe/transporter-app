@@ -1,0 +1,61 @@
+import type { KpiContributorMapping, KpiType } from '@/types/api';
+
+export const KPI_CONTRIBUTOR_MAP: KpiContributorMapping = {
+  DISPATCH_VOLUME: ['volumeMoved', 'totalTrips', 'averagePayload'],
+  GIGO: ['totalCico', 'timeInCount', 'timeOutCount'],
+  CICO_CUSTOMER: ['totalCico', 'timeInCount', 'timeOutCount'],
+  BACKHAUL: ['backhaulVolume', 'backhaulCount', 'averagePayload'],
+  LEAD_TIME: ['averageDistancePerTrip', 'totalDistance', 'totalTrips'],
+  OTD_RING_1: ['otd', 'otdCount', 'totalTrips', 'timeOutCount'],
+  AVG_DISTANCE_PER_TRIP: ['averageDistancePerTrip', 'totalDistance', 'totalTrips'],
+  TRIPS_PER_TRUCK_PER_WEEK: ['tripsPerTruck', 'totalTrips', 'totalTrucks'],
+  TI: ['ti', 'totalTimeIn', 'timeInCount'],
+  TO: ['to', 'totalTimeOut', 'timeOutCount'],
+  AVERAGE_SCORE_CARD: ['averageScoreCard', 'totalSafetyScore', 'highRiskDrivers', 'fatalIncidents'],
+  AVAILABILITY: ['availability', 'totalTrucks', 'totalTrips'],
+  TOTAL_TRUCKS: ['totalTrucks', 'totalDrivers', 'highRiskDrivers'],
+  VIOLATION_RATE: ['violationRate', 'highRiskDrivers', 'redDrivers', 'fatalIncidents'],
+  SKMD: ['skmd', 'greenDriversKm', 'totalDistance'],
+  HRD: ['hrd', 'highRiskDrivers', 'redDrivers', 'totalDrivers'],
+};
+
+export const KPI_METRIC_LABELS: Record<string, string> = {
+  otd: 'On-time Delivery',
+  otdCount: 'OTD Count',
+  violationRate: 'Violation Rate',
+  skmd: 'Safe KM Driven',
+  hrd: 'High Risk Driver Rate',
+  backhaulVolume: 'Backhaul Volume',
+  backhaulCount: 'Backhaul Count',
+  totalSafetyScore: 'Total Safety Score',
+  availability: 'Availability',
+  totalFreightCost: 'Total Freight Cost',
+  freightCostPerTon: 'Freight Cost Per Ton',
+  averagePayload: 'Average Payload',
+  highRiskDrivers: 'High Risk Drivers',
+  totalTrips: 'Total Trips',
+  timeOutCount: 'Time Out Count',
+  averageDistance: 'Average Distance',
+  totalTimeOut: 'Total Time Out',
+  totalTrucks: 'Total Trucks',
+  totalPayload: 'Total Payload',
+  totalDistance: 'Total Distance',
+  volumeMoved: 'Volume Moved',
+  timeInCount: 'Time In Count',
+  tripsPerTruck: 'Trips Per Truck',
+  fatalIncidents: 'Fatal Incidents',
+  totalDrivers: 'Total Drivers',
+  ti: 'Transit In',
+  totalTimeIn: 'Total Time In',
+  totalCico: 'Check-in / Check-out',
+  averageDistancePerTrip: 'Average Distance per Trip',
+  to: 'Transit Out',
+  averageScoreCard: 'Average Score Card',
+  payloadCount: 'Payload Count',
+  greenDriversKm: 'Green Drivers KM',
+  redDrivers: 'Red Drivers',
+};
+
+export function getContributorKeysForKpi(kpiType: KpiType): string[] {
+  return KPI_CONTRIBUTOR_MAP[kpiType] ?? [];
+}

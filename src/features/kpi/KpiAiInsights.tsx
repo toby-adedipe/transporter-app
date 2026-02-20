@@ -2,26 +2,25 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button, Card, EmptyState, SkeletonLoader } from '@/components/ui';
 import { AI_INSIGHTS_API_KEY, AI_INSIGHTS_URL } from '@/constants/config';
+import { colors, fontSize, fontWeight, fontFamily, spacing, borderRadius } from '@/constants/theme';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
-import { useAnalyzeKpiMetricsMutation, useGetKpiV2AggregatedQuery } from '@/store/api/kpiApi';
+import { useAnalyzeKpiMetricsMutation } from '@/store/api/kpiApi';
 import { formatKpiType } from '@/utils/kpiHelpers';
-import { colors, fontSize, fontWeight, spacing } from '@/constants/theme';
-import type { KpiAiAnalysisMetric } from '@/types/api';
+import type {
+  KpiAiAnalysisMetric,
+  KpiDeterministicInsight,
+  KpiType,
+} from '@/types/api';
 
-const VALID_REGIONS = new Set(['NORTH', 'WEST', 'EAST', 'ALL', 'LAGOS']);
-const MAX_ANALYSIS_METRICS = 20;
-
-const normalizeMetricKey = (value: string): string => value.replace(/[^a-z0-9]/gi, '').toLowerCase();
-
-const toNumeric = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string' && value.trim() !== '') {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-};
+interface KpiAiInsightsProps {
+  metricType: KpiType;
+  deterministicInsight: KpiDeterministicInsight | null;
+  analysisMetric: KpiAiAnalysisMetric | null;
+  isDataLoading: boolean;
+  isDataError: boolean;
+  onRetryData: () => void;
+}
 
 const getErrorMessage = (error: unknown): string => {
   if (!error || typeof error !== 'object') return 'Unable to analyze KPI metrics right now';
@@ -40,118 +39,33 @@ const toStringArray = (value: unknown): string[] => {
     .map((entry) => entry.trim());
 };
 
-interface KpiAiInsightsProps {
-  selectedMetricName?: string | null;
-}
-
-export function KpiAiInsights({ selectedMetricName }: KpiAiInsightsProps) {
+export function KpiAiInsights({
+  metricType,
+  deterministicInsight,
+  analysisMetric,
+  isDataLoading,
+  isDataError,
+  onRetryData,
+}: KpiAiInsightsProps) {
   const transporterNumber = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
-  const selectedRegion = useAppSelector((s) => s.filters.selectedRegion);
-  const [lastAutoAnalysisKey, setLastAutoAnalysisKey] = React.useState<string | null>(null);
-  const [analysisScopeLabel, setAnalysisScopeLabel] = React.useState<string>('all metrics');
-
-  const regions =
-    selectedRegion && VALID_REGIONS.has(selectedRegion) && selectedRegion !== 'ALL'
-      ? ([selectedRegion] as Array<'NORTH' | 'WEST' | 'EAST' | 'LAGOS'>)
-      : undefined;
-
-  const {
-    data: aggregatedData,
-    isLoading: isLoadingAggregated,
-    isError: isAggregatedError,
-    refetch: refetchAggregated,
-  } = useGetKpiV2AggregatedQuery(
-    {
-      startDate,
-      endDate,
-      transporterNumbers: transporterNumber ? [transporterNumber] : undefined,
-      regions,
-    },
-    { skip: !transporterNumber },
-  );
-
-  const allAnalysisMetrics = React.useMemo<KpiAiAnalysisMetric[]>(() => {
-    const metricSource = aggregatedData?.result?.kpiMetrics;
-    if (!metricSource || typeof metricSource !== 'object') return [];
-
-    return Object.entries(metricSource)
-      .map(([name, value]) => {
-        const actual = toNumeric((value as any)?.actual);
-        if (actual === null) return null;
-
-        const expected = toNumeric((value as any)?.expected) ?? 0;
-        const rawVariance = toNumeric((value as any)?.variance);
-
-        return {
-          name,
-          description:
-            typeof (value as any)?.kpiDescription === 'string' && (value as any).kpiDescription
-              ? (value as any).kpiDescription
-              : formatKpiType(name),
-          actual,
-          expected,
-          variance: rawVariance ?? actual - expected,
-          unit:
-            typeof (value as any)?.unitOfMeasurement === 'string'
-              ? (value as any).unitOfMeasurement
-              : '',
-        };
-      })
-      .filter((item): item is KpiAiAnalysisMetric => item !== null)
-      .sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance));
-  }, [aggregatedData]);
-
-  const analysisMetrics = React.useMemo(
-    () => allAnalysisMetrics.slice(0, MAX_ANALYSIS_METRICS),
-    [allAnalysisMetrics],
-  );
-
-  const selectedMetric = React.useMemo(() => {
-    if (!selectedMetricName) return null;
-    return (
-      allAnalysisMetrics.find(
-        (metric) => normalizeMetricKey(metric.name) === normalizeMetricKey(selectedMetricName),
-      ) ?? null
-    );
-  }, [allAnalysisMetrics, selectedMetricName]);
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
   const [analyzeKpiMetrics, { data, isLoading: isAnalyzing, isError, error }] =
     useAnalyzeKpiMetricsMutation();
 
   const isConfigured = Boolean(AI_INSIGHTS_URL && AI_INSIGHTS_API_KEY);
 
-  const runAnalysis = React.useCallback(
-    (metrics: KpiAiAnalysisMetric[], scopeLabel: string) => {
-      if (!transporterNumber || metrics.length === 0) return;
-      setAnalysisScopeLabel(scopeLabel);
-      analyzeKpiMetrics({
-        transporterNumber,
-        startDate,
-        endDate,
-        metrics,
-      });
-    },
-    [analyzeKpiMetrics, endDate, startDate, transporterNumber],
-  );
-
-  React.useEffect(() => {
-    if (!selectedMetric || !transporterNumber || !isConfigured) return;
-
-    const autoKey = `${transporterNumber}:${startDate}:${endDate}:${selectedMetric.name}`;
-    if (lastAutoAnalysisKey === autoKey) return;
-
-    setLastAutoAnalysisKey(autoKey);
-    runAnalysis([selectedMetric], formatKpiType(selectedMetric.name));
-  }, [
-    endDate,
-    isConfigured,
-    lastAutoAnalysisKey,
-    runAnalysis,
-    selectedMetric,
-    startDate,
-    transporterNumber,
-  ]);
+  const runAnalysis = React.useCallback(() => {
+    if (!transporterNumber || !analysisMetric) return;
+    setIsExpanded(true);
+    analyzeKpiMetrics({
+      transporterNumber,
+      startDate,
+      endDate,
+      metrics: [analysisMetric],
+    });
+  }, [analysisMetric, analyzeKpiMetrics, endDate, startDate, transporterNumber]);
 
   const analysisResult = data?.result;
   const summary =
@@ -164,124 +78,103 @@ export function KpiAiInsights({ selectedMetricName }: KpiAiInsightsProps) {
   const recommendations = toStringArray((analysisResult as any)?.recommendations);
   const hasAnalysis = summary.trim().length > 0 || insights.length > 0 || recommendations.length > 0;
 
-  if (!isConfigured) {
-    return (
-      <Card variant="default" padding="base">
-        <Text style={styles.title}>AI KPI Analysis</Text>
-        <EmptyState
-          icon="sparkles-outline"
-          title="AI analysis is not configured"
-          subtitle="Set EXPO_PUBLIC_AI_INSIGHTS_URL and EXPO_PUBLIC_AI_INSIGHTS_API_KEY"
-        />
-      </Card>
-    );
-  }
-
-  if (isLoadingAggregated) {
-    return (
-      <Card variant="default" padding="base">
-        <Text style={styles.title}>AI KPI Analysis</Text>
-        <SkeletonLoader width="100%" height={40} />
-        <SkeletonLoader width="100%" height={140} style={{ marginTop: spacing.md }} />
-      </Card>
-    );
-  }
-
-  if (isAggregatedError) {
-    return (
-      <Card variant="default" padding="base">
-        <Text style={styles.title}>AI KPI Analysis</Text>
-        <EmptyState
-          icon="alert-circle-outline"
-          title="Unable to prepare KPI data"
-          subtitle="Retry to load KPI metrics before requesting AI analysis"
-          actionLabel="Retry"
-          onAction={refetchAggregated}
-        />
-      </Card>
-    );
-  }
-
-  if (analysisMetrics.length === 0) {
-    return (
-      <Card variant="default" padding="base">
-        <Text style={styles.title}>AI KPI Analysis</Text>
-        <EmptyState
-          icon="analytics-outline"
-          title="No KPI metrics available"
-          subtitle="Adjust filters and try again"
-        />
-      </Card>
-    );
-  }
-
   return (
     <Card variant="default" padding="base">
       <Text style={styles.title}>AI KPI Analysis</Text>
-      <Text style={styles.subtitle}>
-        {selectedMetric
-          ? `Auto-analyzing ${formatKpiType(selectedMetric.name)} whenever you tap a KPI tile.`
-          : `Tap a KPI tile to run targeted analysis. You can also run all metrics manually.`}
-      </Text>
+      <Text style={styles.subtitle}>Optional deep analysis for {formatKpiType(metricType)}</Text>
 
-      <Button
-        title={selectedMetric ? 'Analyze selected metric again' : 'Analyze all KPI metrics'}
-        onPress={() =>
-          selectedMetric
-            ? runAnalysis([selectedMetric], formatKpiType(selectedMetric.name))
-            : runAnalysis(analysisMetrics, 'all metrics')
-        }
-        loading={isAnalyzing}
-        fullWidth
-      />
+      {deterministicInsight ? (
+        <View style={styles.deterministicBox}>
+          <Text style={styles.deterministicTitle}>Deterministic baseline</Text>
+          <Text style={styles.deterministicText}>{deterministicInsight.summary}</Text>
+        </View>
+      ) : null}
 
-      {selectedMetric && (
-        <View style={styles.helperRow}>
-          <Button
-            title="Analyze all KPI metrics"
-            onPress={() => runAnalysis(analysisMetrics, 'all metrics')}
-            variant="outline"
-            size="sm"
-            fullWidth
+      {isDataLoading ? (
+        <View style={styles.blockSpacing}>
+          <SkeletonLoader width="100%" height={40} />
+          <SkeletonLoader width="100%" height={100} style={{ marginTop: spacing.md }} />
+        </View>
+      ) : isDataError ? (
+        <View style={styles.blockSpacing}>
+          <EmptyState
+            icon="alert-circle-outline"
+            title="Unable to prepare KPI data"
+            subtitle="Retry to load KPI metrics before running AI analysis"
+            actionLabel="Retry"
+            onAction={onRetryData}
           />
         </View>
-      )}
-
-      {isError && <Text style={styles.errorText}>{getErrorMessage(error)}</Text>}
-
-      {hasAnalysis && (
-        <View style={styles.analysisContainer}>
-          <Text style={styles.scopeText}>Scope: {analysisScopeLabel}</Text>
-
-          {summary.trim().length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Summary</Text>
-              <Text style={styles.sectionBody}>{summary.trim()}</Text>
-            </View>
-          )}
-
-          {insights.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Insights</Text>
-              {insights.map((item, index) => (
-                <Text key={`insight-${index}`} style={styles.bulletText}>
-                  • {item}
-                </Text>
-              ))}
-            </View>
-          )}
-
-          {recommendations.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Recommendations</Text>
-              {recommendations.map((item, index) => (
-                <Text key={`recommendation-${index}`} style={styles.bulletText}>
-                  • {item}
-                </Text>
-              ))}
-            </View>
-          )}
+      ) : !analysisMetric ? (
+        <View style={styles.blockSpacing}>
+          <EmptyState
+            icon="analytics-outline"
+            title="Selected metric is unavailable"
+            subtitle="Choose another KPI metric and try again"
+          />
         </View>
+      ) : !isConfigured ? (
+        <View style={styles.blockSpacing}>
+          <EmptyState
+            icon="sparkles-outline"
+            title="AI analysis is not configured"
+            subtitle="Set EXPO_PUBLIC_AI_INSIGHTS_URL and EXPO_PUBLIC_AI_INSIGHTS_API_KEY"
+          />
+        </View>
+      ) : (
+        <>
+          <View style={styles.actionsRow}>
+            <Button
+              title={hasAnalysis ? 'Analyze again' : 'Generate AI analysis'}
+              onPress={runAnalysis}
+              loading={isAnalyzing}
+              fullWidth
+            />
+            {hasAnalysis ? (
+              <Button
+                title={isExpanded ? 'Hide AI details' : 'Show AI details'}
+                onPress={() => setIsExpanded((prev) => !prev)}
+                variant="ghost"
+                fullWidth
+              />
+            ) : null}
+          </View>
+
+          {isError ? <Text style={styles.errorText}>{getErrorMessage(error)}</Text> : null}
+
+          {isExpanded && hasAnalysis ? (
+            <View style={styles.analysisContainer}>
+              {summary.trim().length > 0 ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Summary</Text>
+                  <Text style={styles.sectionBody}>{summary.trim()}</Text>
+                </View>
+              ) : null}
+
+              {insights.length > 0 ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Insights</Text>
+                  {insights.map((item, index) => (
+                    <Text key={`insight-${index}`} style={styles.bulletText}>
+                      • {item}
+                    </Text>
+                  ))}
+                </View>
+              ) : null}
+
+              {recommendations.length > 0 ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Recommendations</Text>
+                  {recommendations.map((item, index) => (
+                    <Text key={`recommendation-${index}`} style={styles.bulletText}>
+                      • {item}
+                    </Text>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+        </>
       )}
     </Card>
   );
@@ -289,48 +182,77 @@ export function KpiAiInsights({ selectedMetricName }: KpiAiInsightsProps) {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: fontSize.base,
-    fontWeight: fontWeight.semibold,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+    fontFamily: fontFamily.bold,
     color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
     marginBottom: spacing.md,
   },
-  helperRow: {
-    marginTop: spacing.sm,
+  deterministicBox: {
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surfaceSecondary,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+    padding: spacing.base,
+    marginBottom: spacing.md,
+    gap: spacing.xs,
   },
-  scopeText: {
+  deterministicTitle: {
     fontSize: fontSize.xs,
-    color: colors.textTertiary,
+    color: colors.textSecondary,
+    fontWeight: fontWeight.semibold,
+    fontFamily: fontFamily.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  deterministicText: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
+    color: colors.textPrimary,
+    lineHeight: 20,
+  },
+  blockSpacing: {
+    marginTop: spacing.xs,
+  },
+  actionsRow: {
+    gap: spacing.sm,
   },
   errorText: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.danger,
     marginTop: spacing.sm,
   },
   analysisContainer: {
     marginTop: spacing.md,
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   section: {
     gap: spacing.xs,
   },
   sectionTitle: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.bold,
+    fontFamily: fontFamily.bold,
     color: colors.textPrimary,
   },
   sectionBody: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
     lineHeight: 20,
   },
   bulletText: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
     lineHeight: 20,
+    paddingLeft: spacing.sm,
   },
 });

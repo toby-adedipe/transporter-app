@@ -7,7 +7,8 @@ import { useGetKpiRankingsQuery } from '@/store/api/kpiApi';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { formatKpiType, getKpiColor } from '@/utils/kpiHelpers';
-import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
+import { colors, spacing, fontSize, fontWeight, fontFamily, borderRadius, shadows } from '@/constants/theme';
+import type { KpiRankingEntry } from '@/types/api';
 
 export function KpiSummary() {
   const transporterNumber = useTransporterNumber();
@@ -18,13 +19,13 @@ export function KpiSummary() {
     { skip: !transporterNumber },
   );
 
-  const resultData = data?.result as any;
-  const rankings: any[] = resultData?.rankings ?? [];
-  const topKpis = rankings.slice(0, 4); // Show top 4 KPIs
-
-  const bestRank = rankings.length > 0
-    ? Math.min(...rankings.map((r: any) => r.rank ?? Infinity))
-    : null;
+  const rankingResult = data?.result;
+  const rankings: KpiRankingEntry[] = Array.isArray(rankingResult)
+    ? rankingResult
+    : Array.isArray(rankingResult?.rankings)
+      ? rankingResult.rankings
+      : [];
+  const topKpis = rankings.slice(0, 4);
 
   if (isLoading) {
     return (
@@ -32,7 +33,6 @@ export function KpiSummary() {
         <View style={styles.header}>
           <Text style={styles.title}>KPI Performance</Text>
         </View>
-        <SkeletonLoader width={100} height={60} style={{ marginBottom: spacing.md }} />
         <View style={styles.grid}>
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonLoader key={i} width="48%" height={80} />
@@ -43,7 +43,7 @@ export function KpiSummary() {
   }
 
   if (rankings.length === 0) {
-    return null; // Don't show if no data
+    return null;
   }
 
   return (
@@ -52,31 +52,34 @@ export function KpiSummary() {
         <Text style={styles.title}>KPI Performance</Text>
         <TouchableOpacity
           style={styles.viewAllButton}
-          onPress={() => router.push('/kpi')}
+          onPress={() => router.push('/(tabs)/kpi')}
         >
           <Text style={styles.viewAllText}>View All</Text>
           <Ionicons name="chevron-forward" size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
-      {bestRank !== null && (
-        <View style={styles.rankBadge}>
-          <Text style={styles.rankLabel}>Best Rank</Text>
-          <Text style={styles.rankValue}>#{bestRank}</Text>
-        </View>
-      )}
-
       {topKpis.length > 0 && (
         <View style={styles.grid}>
-          {topKpis.map((kpi: any, index: number) => (
-            <View key={`${kpi.kpiType}-${index}`} style={styles.cardWrapper}>
+          {topKpis.map((kpi, index) => (
+            <TouchableOpacity
+              key={`${kpi.kpiType}-${index}`}
+              style={styles.cardWrapper}
+              activeOpacity={0.8}
+              onPress={() =>
+                router.push({
+                  pathname: '/(tabs)/reports/kpi-breakdown/[metricType]',
+                  params: { metricType: kpi.kpiType ?? '' },
+                })
+              }
+            >
               <MetricCard
                 title={formatKpiType(kpi.kpiType ?? '')}
                 value={kpi.metricValue ?? '-'}
                 accentColor={getKpiColor(kpi.metricValue ?? 0)}
                 subtitle={kpi.rank ? `Rank #${kpi.rank}` : undefined}
               />
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       )}
@@ -87,10 +90,9 @@ export function KpiSummary() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: borderRadius.xl,
     padding: spacing.base,
+    ...shadows.md,
   },
   header: {
     flexDirection: 'row',
@@ -101,6 +103,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
+    fontFamily: fontFamily.semibold,
     color: colors.textPrimary,
   },
   viewAllButton: {
@@ -111,24 +114,7 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
-    color: colors.primary,
-  },
-  rankBadge: {
-    backgroundColor: colors.primaryLight,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  rankLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.medium,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  rankValue: {
-    fontSize: 32,
-    fontWeight: fontWeight.bold,
+    fontFamily: fontFamily.medium,
     color: colors.primary,
   },
   grid: {

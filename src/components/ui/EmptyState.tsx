@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSize, fontWeight, spacing } from '@/constants/theme';
+import { colors, fontSize, fontWeight, fontFamily, spacing } from '@/constants/theme';
 import { Button } from './Button';
 
 interface EmptyStateProps {
@@ -44,14 +44,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
+    fontFamily: fontFamily.semibold,
     color: colors.textPrimary,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
   subtitle: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
     textAlign: 'center',
+    lineHeight: 20,
   },
   action: {
     marginTop: spacing.base,
