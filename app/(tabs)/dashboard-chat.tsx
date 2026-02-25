@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,36 +13,31 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { EmptyState, MarkdownViewer } from '@/components/ui';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
-import { useAppSelector } from '@/hooks/useAppSelector';
+import { useAppDispatch, useAppSelector } from '@/hooks/useAppSelector';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { useChatWithTransporterBotMutation } from '@/store/api/transporterInsightsApi';
+import { useGetKpiRankingsQuery, useGetKpiSummaryQuery } from '@/store/api/kpiApi';
+import {
+  appendChatMessage,
+  clearChat,
+  setChatTransporter,
+  setHandoverState,
+  type CachedChatMessage,
+} from '@/store/slices/chatSlice';
 import { AI_INSIGHTS_API_KEY } from '@/constants/config';
 import type { TransporterChatMessage, TransporterChatResponse } from '@/types/api';
 
-interface UiChatMessage extends TransporterChatMessage {
-  id: string;
-  isError?: boolean;
-}
-
-interface HandoverState {
-  emailSent: boolean;
-  recipient?: string;
-  reference?: string;
-}
-
 const STARTER_PROMPTS = [
   'Summarize my KPI performance for the current date range.',
-  'Which shipments or trucks look delayed right now?',
   'What operational risks should I prioritize today?',
 ] as const;
 
 const toMessageId = (): string =>
   `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 
-const toRequestMessages = (messages: UiChatMessage[]): TransporterChatMessage[] =>
+const toRequestMessages = (messages: CachedChatMessage[]): TransporterChatMessage[] =>
   messages.map(({ role, content }) => ({ role, content })).slice(-30);
 
 const getChatErrorMessage = (error: unknown): string => {
@@ -74,29 +70,46 @@ const getChatErrorMessage = (error: unknown): string => {
 };
 
 export default function DashboardChatScreen() {
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const transporterNumber = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((state) => state.filters.dateRange);
   const selectedRegion = useAppSelector((state) => state.filters.selectedRegion);
+  const messages = useAppSelector((state) => state.chat.messages);
+  const handoverState = useAppSelector((state) => state.chat.handoverState);
   const isInsightsConfigured = Boolean(AI_INSIGHTS_API_KEY);
+  const regionForKpi = selectedRegion === 'ALL' ? undefined : selectedRegion;
+
+  const { data: kpiRankingsData } = useGetKpiRankingsQuery(
+    {
+      transporterNumber,
+      startDate,
+      endDate,
+      region: regionForKpi,
+    },
+    { skip: !transporterNumber },
+  );
+
+  const { data: kpiSummaryData } = useGetKpiSummaryQuery(
+    {
+      transporterNumber,
+      region: regionForKpi,
+      windowDays: 30,
+    },
+    { skip: !transporterNumber },
+  );
 
   const scrollRef = useRef<ScrollView>(null);
   const [draft, setDraft] = useState('');
-  const [messages, setMessages] = useState<UiChatMessage[]>([]);
-  const [handoverState, setHandoverState] = useState<HandoverState | null>(null);
   const [isEscalating, setIsEscalating] = useState(false);
 
   const [chatWithTransporterBot, { isLoading: isSending }] = useChatWithTransporterBotMutation();
 
-  useFocusEffect(
-    useCallback(() => {
-      setDraft('');
-      setMessages([]);
-      setHandoverState(null);
-      setIsEscalating(false);
-    }, []),
-  );
+  useEffect(() => {
+    if (!transporterNumber) return;
+    dispatch(setChatTransporter(transporterNumber));
+  }, [dispatch, transporterNumber]);
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
@@ -105,12 +118,12 @@ export default function DashboardChatScreen() {
   const applyHandoverState = useCallback((response: TransporterChatResponse) => {
     if (!response?.result?.handoverTriggered) return;
 
-    setHandoverState({
+    dispatch(setHandoverState({
       emailSent: Boolean(response.result.handoverEmailSent),
       recipient: response.result.handoverRecipient,
       reference: response.result.handoverReference,
-    });
-  }, []);
+    }));
+  }, [dispatch]);
 
   const canSend = useMemo(
     () =>
@@ -132,25 +145,45 @@ export default function DashboardChatScreen() {
     [isEscalating, isInsightsConfigured, isSending, messages.length, transporterNumber],
   );
 
+  const kpiData = useMemo<Record<string, unknown> | undefined>(() => {
+    if (!transporterNumber) return undefined;
+
+    const rankingsResult = kpiRankingsData?.result as any;
+    const rankings = Array.isArray(rankingsResult)
+      ? rankingsResult
+      : Array.isArray(rankingsResult?.rankings)
+        ? rankingsResult.rankings
+        : [];
+
+    const summary = (kpiSummaryData?.result as Record<string, unknown> | undefined) ?? undefined;
+    if (rankings.length === 0 && !summary) return undefined;
+
+    return {
+      rankings,
+      summary,
+    };
+  }, [kpiRankingsData?.result, kpiSummaryData?.result, transporterNumber]);
+
   const handleSendMessage = useCallback(
     async (rawContent: string) => {
       const content = rawContent.trim();
       if (!content || isSending || isEscalating || !isInsightsConfigured || !transporterNumber) return;
 
-      const userMessage: UiChatMessage = {
+      const userMessage: CachedChatMessage = {
         id: toMessageId(),
         role: 'user',
         content,
       };
 
       const nextMessages = [...messages, userMessage];
-      setMessages(nextMessages);
+      dispatch(appendChatMessage(userMessage));
       setDraft('');
 
       try {
         const response = await chatWithTransporterBot({
           transporterNumber,
           messages: toRequestMessages(nextMessages),
+          kpiData,
           startDate,
           endDate,
           region: selectedRegion,
@@ -159,27 +192,22 @@ export default function DashboardChatScreen() {
 
         applyHandoverState(response);
         const reply = response?.result?.reply?.trim() || 'No response generated.';
-        setMessages((current) => [
-          ...current,
-          {
-            id: toMessageId(),
-            role: 'assistant',
-            content: reply,
-          },
-        ]);
+        dispatch(appendChatMessage({
+          id: toMessageId(),
+          role: 'assistant',
+          content: reply,
+        }));
       } catch (error) {
-        setMessages((current) => [
-          ...current,
-          {
-            id: toMessageId(),
-            role: 'assistant',
-            content: getChatErrorMessage(error),
-            isError: true,
-          },
-        ]);
+        dispatch(appendChatMessage({
+          id: toMessageId(),
+          role: 'assistant',
+          content: getChatErrorMessage(error),
+          isError: true,
+        }));
       }
     },
     [
+      dispatch,
       chatWithTransporterBot,
       endDate,
       applyHandoverState,
@@ -190,6 +218,7 @@ export default function DashboardChatScreen() {
       selectedRegion,
       startDate,
       transporterNumber,
+      kpiData,
     ],
   );
 
@@ -201,6 +230,7 @@ export default function DashboardChatScreen() {
       const response = await chatWithTransporterBot({
         transporterNumber,
         messages: toRequestMessages(messages),
+        kpiData,
         startDate,
         endDate,
         region: selectedRegion,
@@ -211,29 +241,24 @@ export default function DashboardChatScreen() {
       applyHandoverState(response);
       const reply = response?.result?.reply?.trim();
       if (reply) {
-        setMessages((current) => [
-          ...current,
-          {
-            id: toMessageId(),
-            role: 'assistant',
-            content: reply,
-          },
-        ]);
-      }
-    } catch (error) {
-      setMessages((current) => [
-        ...current,
-        {
+        dispatch(appendChatMessage({
           id: toMessageId(),
           role: 'assistant',
-          content: getChatErrorMessage(error),
-          isError: true,
-        },
-      ]);
+          content: reply,
+        }));
+      }
+    } catch (error) {
+      dispatch(appendChatMessage({
+        id: toMessageId(),
+        role: 'assistant',
+        content: getChatErrorMessage(error),
+        isError: true,
+      }));
     } finally {
       setIsEscalating(false);
     }
   }, [
+    dispatch,
     applyHandoverState,
     canEscalate,
     chatWithTransporterBot,
@@ -242,7 +267,28 @@ export default function DashboardChatScreen() {
     selectedRegion,
     startDate,
     transporterNumber,
+    kpiData,
   ]);
+
+  const handleStartNewConversation = useCallback(() => {
+    if (isSending || isEscalating) return;
+    Alert.alert(
+      'Start new conversation?',
+      'This will clear the current chat history on this device.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Start New',
+          style: 'destructive',
+          onPress: () => {
+            dispatch(clearChat());
+            setDraft('');
+            setIsEscalating(false);
+          },
+        },
+      ],
+    );
+  }, [dispatch, isEscalating, isSending]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -251,7 +297,23 @@ export default function DashboardChatScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>Assistant</Text>
-        <View style={{ width: 32 }} />
+        <TouchableOpacity
+          style={styles.newChatBtn}
+          onPress={handleStartNewConversation}
+          disabled={isSending || isEscalating || messages.length === 0}
+          accessibilityRole="button"
+          accessibilityLabel="Start a new conversation"
+        >
+          <Ionicons
+            name="refresh-outline"
+            size={18}
+            color={
+              isSending || isEscalating || messages.length === 0
+                ? colors.textTertiary
+                : colors.primary
+            }
+          />
+        </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView
@@ -430,6 +492,14 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   backBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  newChatBtn: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: colors.surfaceSecondary,
+  },
   title: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, color: colors.textPrimary },
   messagesContent: {
     padding: spacing.base,
@@ -531,6 +601,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+    marginRight: spacing.base,
+    paddingRight: spacing.lg,
+    maxWidth: '82%',
   },
   errorBubble: {
     borderColor: colors.danger,

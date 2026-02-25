@@ -18,6 +18,7 @@ export interface TransporterChatMessage {
 export interface TransporterChatRequest {
   transporterNumber: string;
   messages: TransporterChatMessage[];
+  kpiData?: Record<string, unknown>;
   startDate?: string;
   endDate?: string;
   region?: string;

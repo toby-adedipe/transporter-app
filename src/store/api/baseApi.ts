@@ -50,12 +50,20 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 ) => {
   let result = await baseQuery(args, api, extraOptions);
 
+  // originalStatus holds the real HTTP code when RTK Query fails to parse the response body
+  const httpStatus =
+    typeof result.error?.status === 'number'
+      ? result.error.status
+      : (result.error as any)?.originalStatus ?? null;
+  const is401 = httpStatus === 401;
+
   const shouldAttemptRefresh = (() => {
-    if (!result.error || result.error.status !== 401) return false;
+    if (!result.error || !is401) return false;
     const errorData = (result.error as any).data;
     const candidates = [
       typeof errorData?.message === 'string' ? errorData.message : '',
       typeof errorData?.detail === 'string' ? errorData.detail : '',
+      typeof errorData === 'string' ? errorData : '',
       typeof (result.error as any).error === 'string' ? (result.error as any).error : '',
     ]
       .map((entry) => entry.toLowerCase())
@@ -70,7 +78,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
     return !nonRefreshable401;
   })();
 
-  if (result.error && result.error.status === 401 && shouldAttemptRefresh) {
+  if (result.error && is401 && shouldAttemptRefresh) {
     const refreshToken = await SecureStore.getItemAsync('refreshToken');
 
     if (refreshToken) {
@@ -87,9 +95,15 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
         api.dispatch({ type: 'auth/tokenRefreshed', payload: data.token });
         result = await baseQuery(args, api, extraOptions);
       } else {
+        await SecureStore.deleteItemAsync('token');
+        await SecureStore.deleteItemAsync('refreshToken');
+        await SecureStore.deleteItemAsync('user');
         api.dispatch({ type: 'auth/logout' });
       }
     } else {
+      await SecureStore.deleteItemAsync('token');
+      await SecureStore.deleteItemAsync('refreshToken');
+      await SecureStore.deleteItemAsync('user');
       api.dispatch({ type: 'auth/logout' });
     }
   }

@@ -120,4 +120,3 @@ export const {
   useGetTruckLocationByPlateQuery,
   useChatWithTransporterBotMutation,
 } = transporterInsightsApi;
-
