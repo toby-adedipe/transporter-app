@@ -1,11 +1,14 @@
 import React, { useCallback } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
+import { Button, Card } from '@/components/ui';
 import { KpiOverview } from '@/features/kpi/KpiOverview';
 import { KpiHistoryChart } from '@/features/kpi/KpiHistoryChart';
 import { colors, spacing } from '@/constants/theme';
 
 export default function KpiScreen() {
+  const router = useRouter();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = useCallback(() => {
@@ -20,6 +23,13 @@ export default function KpiScreen() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
+        <Card variant="default" padding="base">
+          <Button
+            title="Open Revenue Simulator"
+            onPress={() => router.push('/(tabs)/kpi/revenue-simulator')}
+            fullWidth
+          />
+        </Card>
         <KpiOverview />
         <KpiHistoryChart />
       </ScrollView>

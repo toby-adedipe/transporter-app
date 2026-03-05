@@ -28,6 +28,11 @@ const QUICK_ACTIONS: QuickAction[] = [
     route: '/(tabs)/fleet',
   },
   {
+    label: 'Revenue Simulator',
+    icon: 'analytics-outline',
+    route: '/(tabs)/kpi/revenue-simulator',
+  },
+  {
     label: 'Reports',
     icon: 'bar-chart-outline',
     route: '/(tabs)/reports',
