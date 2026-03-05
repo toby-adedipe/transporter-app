@@ -5,6 +5,7 @@ import { ShipmentSegmentPicker, ShipmentSegment } from '@/features/shipments/Shi
 import { ShipmentList } from '@/features/shipments/ShipmentList';
 import { DiversionsList } from '@/features/shipments/DiversionsList';
 import { ReroutingsList } from '@/features/shipments/ReroutingsList';
+import { FeedbackList } from '@/features/shipmentFeedback/FeedbackList';
 import { colors } from '@/constants/theme';
 
 export default function ShipmentsIndexScreen() {
@@ -17,6 +18,7 @@ export default function ShipmentsIndexScreen() {
       {segment === 'all' && <ShipmentList />}
       {segment === 'diversions' && <DiversionsList />}
       {segment === 'reroutings' && <ReroutingsList />}
+      {segment === 'feedback' && <FeedbackList />}
     </View>
   );
 }

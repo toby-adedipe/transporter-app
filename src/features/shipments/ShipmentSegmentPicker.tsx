@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '@/constants/theme';
 
-export type ShipmentSegment = 'all' | 'reroutings' | 'diversions';
+export type ShipmentSegment = 'all' | 'reroutings' | 'diversions' | 'feedback';
 
 interface Props {
   selected: ShipmentSegment;
@@ -14,6 +14,7 @@ const segments: { key: ShipmentSegment; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'reroutings', label: 'Rerouted' },
   { key: 'diversions', label: 'Diverted' },
+  { key: 'feedback', label: 'Feedback' },
 ];
 
 export function ShipmentSegmentPicker({ selected, onSelect, counts }: Props) {

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { FlatList, RefreshControl, View, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { ShipmentCard } from './ShipmentCard';
 import { SkeletonLoader, EmptyState } from '@/components/ui';
 import { ErrorView } from '@/components/ErrorView';
@@ -9,6 +10,7 @@ import { useTransporterNumber } from '@/hooks/useTransporterNumber';
 import { colors, spacing } from '@/constants/theme';
 
 export function ShipmentList() {
+  const router = useRouter();
   const transporterSapId = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
   const [page, setPage] = useState(1);
@@ -45,16 +47,35 @@ export function ShipmentList() {
     <FlatList
       data={items}
       keyExtractor={(item, index) => item.shipmentNumber ?? item.logon ?? String(index)}
-      renderItem={({ item }) => (
-        <ShipmentCard
-          logon={item.logon ?? item.shipmentNumber}
-          truckPlate={item.truckPlate}
-          status={item.shipmentStatus ?? item.leadTimeSla}
-          origin={item.plant}
-          destination={item.customerName}
-          dispatchDate={item.dispatchDate ? new Date(item.dispatchDate).toLocaleDateString() : undefined}
-        />
-      )}
+      renderItem={({ item }) => {
+        const logon = item.logon ?? item.shipmentNumber;
+        const canViewFeedback = Boolean(logon);
+
+        return (
+          <ShipmentCard
+            logon={logon}
+            truckPlate={item.truckPlate}
+            status={item.shipmentStatus ?? item.leadTimeSla}
+            origin={item.plant}
+            destination={item.customerName}
+            dispatchDate={item.dispatchDate ? new Date(item.dispatchDate).toLocaleDateString() : undefined}
+            onViewFeedback={
+              canViewFeedback
+                ? () =>
+                    router.push(
+                      `/(tabs)/shipments/feedback/${encodeURIComponent(logon)}` as any,
+                    )
+                : undefined
+            }
+            feedbackDisabled={!canViewFeedback}
+            feedbackDisabledReason={
+              canViewFeedback
+                ? undefined
+                : 'Feedback details unavailable: missing logon identifier.'
+            }
+          />
+        );
+      }}
       contentContainerStyle={styles.list}
       refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} tintColor={colors.primary} />}
       onEndReached={handleLoadMore}

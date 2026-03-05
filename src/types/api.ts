@@ -400,3 +400,68 @@ export interface KpiDeterministicInsight {
 }
 
 export type KpiContributorMapping = Record<KpiType, string[]>;
+
+// Shipment Feedback
+export interface ShipmentFeedbackSearchFilter {
+  transporterNumber?: string;
+  region?: string;
+  feedbackDateStart?: string;
+  feedbackDateEnd?: string;
+  driverSapId?: number;
+  truckPlate?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface ShipmentFeedbackContribution {
+  actorType?: string;
+  actorId?: string;
+  actorName?: string;
+  action?: string;
+  createdAt?: string;
+  changes?: Record<string, unknown>;
+}
+
+export interface ShipmentFeedbackRecord {
+  id?: number;
+  logon?: string;
+  shipmentNumber?: string;
+  transporterNumber?: string;
+  region?: string;
+  feedbackDate?: string;
+  driverSapId?: number;
+  driverName?: string;
+  truckPlate?: string;
+  driverFeedbackText?: string;
+  otherInformationText?: string;
+  delayAtCustomer?: boolean;
+  tamperingObserved?: boolean;
+  distanceCovered?: number;
+  unknownDistanceCovered?: number;
+  driverScoreOnArrival?: number;
+  driverArrivalRating?: string;
+  driverBehaviour?: string;
+  remedialAction?: string;
+  otherRemarks?: string;
+  consequenceDue?: boolean;
+  consequenceApplied?: string;
+  hosHoursManual?: number;
+  violationsTotalManual?: number;
+  violationsOsManual?: number;
+  violationsHbManual?: number;
+  violationsHaManual?: number;
+  violationsCdManual?: number;
+  manualOverrideReason?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  contributions: ShipmentFeedbackContribution[];
+}
+
+export interface ShipmentFeedbackListResult {
+  items: ShipmentFeedbackRecord[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  raw: unknown;
+}
