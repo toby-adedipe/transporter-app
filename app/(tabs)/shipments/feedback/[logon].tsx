@@ -445,7 +445,14 @@ export default function ShipmentFeedbackDetailScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>Driver Feedback</Text>
-        <View style={{ width: 32 }} />
+        <TouchableOpacity
+          onPress={() => router.push('/(tabs)/shipments')}
+          style={styles.headerAction}
+          accessibilityRole="button"
+          accessibilityLabel="Go to all shipments"
+        >
+          <Text style={styles.headerActionText}>All Shipments</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -639,6 +646,20 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
     color: colors.textPrimary,
+  },
+  headerAction: {
+    minWidth: 32,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerActionText: {
+    fontSize: fontSize.xs,
+    color: colors.primary,
+    fontWeight: fontWeight.semibold,
   },
   content: {
     padding: spacing.base,

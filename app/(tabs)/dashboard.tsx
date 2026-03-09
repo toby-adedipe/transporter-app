@@ -1,7 +1,5 @@
 import React, { useCallback } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { DashboardMetricsGrid } from '@/features/dashboard/DashboardMetricsGrid';
 import { KpiSummary } from '@/features/dashboard/KpiSummary';
@@ -10,10 +8,9 @@ import { QuickActions } from '@/features/dashboard/QuickActions';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useGetComprehensiveDashboardQuery } from '@/store/api/dashboardApi';
 import { useTransporterNumber } from '@/hooks/useTransporterNumber';
-import { colors, spacing, borderRadius } from '@/constants/theme';
+import { colors, spacing } from '@/constants/theme';
 
 export default function DashboardScreen() {
-  const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
   const transporterNumber = useTransporterNumber();
   const { startDate, endDate } = useAppSelector((s) => s.filters.dateRange);
@@ -41,19 +38,10 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
+      {/* AI chat entry point intentionally hidden for now. */}
       <ScreenHeader
         title="Dashboard"
         subtitle={subtitle}
-        rightAction={(
-          <TouchableOpacity
-            style={styles.chatButton}
-            onPress={() => router.push('/(tabs)/dashboard-chat')}
-            accessibilityRole="button"
-            accessibilityLabel="Open assistant"
-          >
-            <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.primary} />
-          </TouchableOpacity>
-        )}
       />
       <ScrollView
         contentContainerStyle={styles.content}
@@ -85,13 +73,5 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     gap: spacing.lg,
     paddingBottom: spacing['3xl'],
-  },
-  chatButton: {
-    backgroundColor: colors.primaryLight,
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: borderRadius.md,
   },
 });

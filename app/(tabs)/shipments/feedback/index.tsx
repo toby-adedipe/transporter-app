@@ -223,6 +223,17 @@ export default function ShipmentFeedbackIndexScreen() {
       <ScreenHeader
         title="Driver Feedback"
         subtitle="All feedback for your transporter"
+        rightAction={
+          <TouchableOpacity
+            style={styles.headerAction}
+            onPress={() => router.push('/(tabs)/shipments')}
+            accessibilityRole="button"
+            accessibilityLabel="Go back to all shipments"
+          >
+            <Ionicons name="arrow-back-outline" size={16} color={colors.primary} />
+            <Text style={styles.headerActionText}>All Shipments</Text>
+          </TouchableOpacity>
+        }
       />
 
       <View style={styles.filterContainer}>
@@ -490,5 +501,18 @@ const styles = StyleSheet.create({
   },
   createActionRow: {
     marginTop: spacing.sm,
+  },
+  headerAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: spacing.lg,
+    backgroundColor: colors.primaryLight,
+  },
+  headerActionText: {
+    fontSize: fontSize.sm,
+    color: colors.primary,
   },
 });
