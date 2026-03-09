@@ -4,11 +4,13 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Provider } from 'react-redux';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { store } from '@/store';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ToastProvider } from '@/components/ui/ToastProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,17 +32,21 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ErrorBoundary>
-        <Provider store={store}>
-          <AuthProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
-          </AuthProvider>
-        </Provider>
-      </ErrorBoundary>
+      <SafeAreaProvider>
+        <ErrorBoundary>
+          <Provider store={store}>
+            <AuthProvider>
+              <ToastProvider>
+                <StatusBar style="dark" />
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen name="(tabs)" />
+                </Stack>
+              </ToastProvider>
+            </AuthProvider>
+          </Provider>
+        </ErrorBoundary>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

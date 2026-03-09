@@ -23,6 +23,11 @@ const QUICK_ACTIONS: QuickAction[] = [
     route: '/(tabs)/shipments',
   },
   {
+    label: 'All Feedback',
+    icon: 'chatbubble-ellipses-outline',
+    route: '/(tabs)/shipments/feedback',
+  },
+  {
     label: 'Fleet',
     icon: 'car-outline',
     route: '/(tabs)/fleet',
@@ -69,7 +74,7 @@ export function QuickActions() {
                 color={colors.primary}
               />
             </View>
-            <Text style={styles.label} numberOfLines={2}>
+            <Text style={styles.label} numberOfLines={1}>
               {action.label}
             </Text>
           </TouchableOpacity>
@@ -92,7 +97,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   card: {
-    width: 100,
+    width: 132,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
@@ -110,7 +115,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: fontSize.xs,
+    fontSize: 11,
     fontWeight: fontWeight.medium,
     color: colors.textPrimary,
     textAlign: 'center',

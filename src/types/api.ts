@@ -413,6 +413,39 @@ export interface ShipmentFeedbackSearchFilter {
   size?: number;
 }
 
+export interface ShipmentFeedbackEligibilityRequest {
+  shipmentNumber?: string;
+  logon?: string;
+}
+
+export type ShipmentFeedbackArrivalRating = 'GREEN' | 'AMBER' | 'RED';
+
+export interface ShipmentFeedbackCreateRequest {
+  shipmentNumber?: string;
+  logon?: string;
+  feedbackDate?: string;
+  driverFeedbackText?: string;
+  otherInformationText?: string;
+  delayAtCustomer?: boolean;
+  tamperingObserved?: boolean;
+  distanceCovered?: number;
+  unknownDistanceCovered?: number;
+  driverScoreOnArrival?: number;
+  driverArrivalRating?: ShipmentFeedbackArrivalRating;
+  driverBehaviour?: string;
+  remedialAction?: string;
+  otherRemarks?: string;
+  consequenceDue?: boolean;
+  consequenceApplied?: string;
+  hosHoursManual?: number;
+  violationsTotalManual?: number;
+  violationsOsManual?: number;
+  violationsHbManual?: number;
+  violationsHaManual?: number;
+  violationsCdManual?: number;
+  manualOverrideReason?: string;
+}
+
 export interface ShipmentFeedbackContribution {
   actorType?: string;
   actorId?: string;
@@ -424,6 +457,7 @@ export interface ShipmentFeedbackContribution {
 
 export interface ShipmentFeedbackRecord {
   id?: number;
+  feedbackExists?: boolean;
   logon?: string;
   shipmentNumber?: string;
   transporterNumber?: string;
@@ -463,5 +497,12 @@ export interface ShipmentFeedbackListResult {
   size: number;
   totalElements: number;
   totalPages: number;
+  raw: unknown;
+}
+
+export interface ShipmentFeedbackEligibilityResult {
+  eligible: boolean;
+  reasons: string[];
+  summary?: string;
   raw: unknown;
 }

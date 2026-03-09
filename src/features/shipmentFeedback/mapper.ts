@@ -1,5 +1,6 @@
 import type {
   ShipmentFeedbackContribution,
+  ShipmentFeedbackEligibilityResult,
   ShipmentFeedbackListResult,
   ShipmentFeedbackRecord,
 } from '@/types/api';
@@ -96,8 +97,12 @@ export const mapShipmentFeedback = (payload: unknown): ShipmentFeedbackRecord | 
     .map(mapContribution)
     .filter((item): item is ShipmentFeedbackContribution => Boolean(item));
 
+  const feedbackExists =
+    pickBoolean(source, ['feedbackExists']) ?? pickBoolean(root, ['feedbackExists']);
+
   return {
     id: pickNumber(source, ['id', 'feedbackId']),
+    feedbackExists,
     logon: pickString(source, ['logon', 'logonNumber']),
     shipmentNumber: pickString(source, ['shipmentNumber', 'orderNumber']),
     transporterNumber: pickString(source, ['transporterNumber', 'transporterSapId']),
@@ -130,6 +135,11 @@ export const mapShipmentFeedback = (payload: unknown): ShipmentFeedbackRecord | 
     updatedAt: pickString(source, ['updatedAt']),
     contributions,
   };
+};
+
+export const getShipmentFeedbackExists = (payload: unknown): boolean | undefined => {
+  const record = mapShipmentFeedback(payload);
+  return record?.feedbackExists;
 };
 
 export const mapShipmentFeedbackList = (payload: unknown): ShipmentFeedbackListResult => {
@@ -171,4 +181,88 @@ export const mapShipmentFeedbackList = (payload: unknown): ShipmentFeedbackListR
     totalPages,
     raw: unwrapped,
   };
+};
+
+export const mapShipmentFeedbackEligibility = (
+  payload: unknown,
+): ShipmentFeedbackEligibilityResult => {
+  const unwrapped = unwrapResponse(payload);
+  const root = toRecord(unwrapped);
+  const source = root ?? {};
+
+  const topLevelReason = pickString(source, [
+    'reason',
+    'failureReason',
+    'message',
+    'summary',
+    'status',
+  ]);
+
+  const rules = pickArray(source, ['failedRules', 'rules', 'checks', 'results']);
+  const nestedReasons = rules.flatMap((entry) => {
+    const item = toRecord(entry);
+    if (!item) return [];
+
+    const passed = pickBoolean(item, ['passed', 'eligible', 'isEligible']);
+    if (passed === true) return [];
+
+    const reason = pickString(item, ['reason', 'message', 'name', 'label', 'title']);
+    return reason ? [reason] : [];
+  });
+
+  const directReasons = pickArray(source, ['reasons', 'errors', 'messages']).flatMap((entry) => {
+    if (typeof entry === 'string' && entry.trim().length > 0) return [entry.trim()];
+    const item = toRecord(entry);
+    if (!item) return [];
+    const reason = pickString(item, ['reason', 'message', 'name', 'label']);
+    return reason ? [reason] : [];
+  });
+
+  const reasons = Array.from(
+    new Set(
+      [...directReasons, ...nestedReasons, ...(topLevelReason ? [topLevelReason] : [])].filter(
+        (value) => value.trim().length > 0,
+      ),
+    ),
+  );
+
+  const explicitEligibility = pickBoolean(source, [
+    'eligible',
+    'isEligible',
+    'canCreate',
+    'allowed',
+    'passed',
+  ]);
+
+  return {
+    eligible: explicitEligibility ?? reasons.length === 0,
+    reasons,
+    summary: topLevelReason,
+    raw: unwrapped,
+  };
+};
+
+export const mapShipmentNumberByLogon = (payload: unknown): string | undefined => {
+  const unwrapped = unwrapResponse(payload);
+  const root = toRecord(unwrapped);
+
+  const collection = root
+    ? pickValue(root, ['content', 'items', 'data', 'records', 'results', 'shipments'])
+    : unwrapped;
+
+  const candidates = Array.isArray(collection)
+    ? collection
+    : Array.isArray(unwrapped)
+      ? unwrapped
+      : [unwrapped];
+
+  for (const entry of candidates) {
+    const record = toRecord(entry);
+    if (!record) continue;
+
+    const shipmentNumber = pickString(record, ['shipmentNumber', 'orderNumber', 'shipmentNo']);
+    if (shipmentNumber) return shipmentNumber;
+  }
+
+  return undefined;
 };

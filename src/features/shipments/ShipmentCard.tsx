@@ -48,7 +48,7 @@ export function ShipmentCard({
 
       <View style={styles.feedbackSection}>
         <Button
-          title="View Driver Feedback"
+          title="Open Driver Feedback"
           variant="outline"
           size="sm"
           onPress={onViewFeedback ?? (() => {})}

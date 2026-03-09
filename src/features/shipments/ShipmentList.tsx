@@ -62,9 +62,13 @@ export function ShipmentList() {
             onViewFeedback={
               canViewFeedback
                 ? () =>
-                    router.push(
-                      `/(tabs)/shipments/feedback/${encodeURIComponent(logon)}` as any,
-                    )
+                    router.push({
+                      pathname: '/(tabs)/shipments/feedback/[logon]',
+                      params: {
+                        logon,
+                        shipmentNumber: item.shipmentNumber ?? '',
+                      },
+                    } as any)
                 : undefined
             }
             feedbackDisabled={!canViewFeedback}

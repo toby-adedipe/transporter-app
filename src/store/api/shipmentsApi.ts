@@ -39,6 +39,12 @@ const shipmentsApi = baseApi.injectEndpoints({
       }),
       providesTags: ['Shipments'],
     }),
+    getShipmentsByLogon: builder.query<AppResponse<unknown>, string>({
+      query: (logonOrderNumber) => ({
+        url: `/api/integrations/dis/shipments/by-logon/${encodeURIComponent(logonOrderNumber)}`,
+      }),
+      providesTags: ['Shipments'],
+    }),
     getEscalatedTasks: builder.query<AppResponse<unknown>, EscalatedTaskFilterDto>({
       query: (body) => ({
         url: '/task/escalated/filter',
@@ -69,6 +75,7 @@ const shipmentsApi = baseApi.injectEndpoints({
 export const {
   useGetAllShipmentsQuery,
   useGetTodayShipmentsQuery,
+  useGetShipmentsByLogonQuery,
   useGetEscalatedTasksQuery,
   useGetDiversionsQuery,
   useGetReroutingsQuery,

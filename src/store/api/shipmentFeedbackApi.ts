@@ -1,5 +1,10 @@
 import { baseApi } from '@/store/api/baseApi';
-import type { AppResponse, ShipmentFeedbackSearchFilter } from '@/types/api';
+import type {
+  AppResponse,
+  ShipmentFeedbackCreateRequest,
+  ShipmentFeedbackEligibilityRequest,
+  ShipmentFeedbackSearchFilter,
+} from '@/types/api';
 
 const shipmentFeedbackApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -23,6 +28,25 @@ const shipmentFeedbackApi = baseApi.injectEndpoints({
       }),
       providesTags: ['Shipments'],
     }),
+    precheckFeedbackEligibility: builder.query<
+      AppResponse<unknown>,
+      ShipmentFeedbackEligibilityRequest
+    >({
+      query: (body) => ({
+        url: '/transporter/feedback/eligibility-check',
+        method: 'POST',
+        body,
+      }),
+      providesTags: ['Shipments'],
+    }),
+    createFeedback: builder.mutation<AppResponse<unknown>, ShipmentFeedbackCreateRequest>({
+      query: (body) => ({
+        url: '/transporter/feedback',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Shipments'],
+    }),
   }),
 });
 
@@ -30,4 +54,7 @@ export const {
   useGetFeedbackByLogonQuery,
   useSearchFeedbackQuery,
   useGetFeedbackByIdQuery,
+  usePrecheckFeedbackEligibilityQuery,
+  useLazyPrecheckFeedbackEligibilityQuery,
+  useCreateFeedbackMutation,
 } = shipmentFeedbackApi;

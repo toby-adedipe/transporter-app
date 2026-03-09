@@ -12,7 +12,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, EmptyState, SkeletonLoader, StatusBadge } from '@/components/ui';
 import { ErrorView } from '@/components/ErrorView';
-import { mapShipmentFeedback } from '@/features/shipmentFeedback/mapper';
+import { getShipmentFeedbackApiErrorMessage } from '@/features/shipmentFeedback/errors';
+import {
+  getShipmentFeedbackExists,
+  mapShipmentFeedback,
+} from '@/features/shipmentFeedback/mapper';
 import { useGetFeedbackByLogonQuery } from '@/store/api/shipmentFeedbackApi';
 import type { ShipmentFeedbackContribution } from '@/types/api';
 import { borderRadius, colors, fontSize, fontWeight, spacing } from '@/constants/theme';
@@ -49,32 +53,6 @@ const toRatingStatus = (
   if (normalized === 'AMBER') return 'warning';
   if (normalized === 'RED') return 'danger';
   return 'neutral';
-};
-
-const getFeedbackErrorMessage = (error: unknown): string => {
-  const fallbackMessage = 'Failed to load feedback details';
-  if (!error || typeof error !== 'object') return fallbackMessage;
-
-  const typedError = error as any;
-  const status = typedError.status ?? typedError.originalStatus;
-  const dataMessage =
-    typeof typedError?.data?.message === 'string' ? typedError.data.message.trim() : '';
-  const dataDetail =
-    typeof typedError?.data?.detail === 'string' ? typedError.data.detail.trim() : '';
-
-  if (status === 401) return 'Session expired. Please sign in again.';
-  if (status === 403) return 'You do not have access to this feedback record.';
-  if (status === 422) return dataMessage || 'Invalid feedback request.';
-  if (status === 500 || status === 502)
-    return 'Feedback service is temporarily unavailable. Please retry.';
-
-  if (dataDetail) return dataDetail;
-  if (dataMessage) return dataMessage;
-  if (typeof typedError.error === 'string' && typedError.error.trim().length > 0) {
-    return typedError.error;
-  }
-
-  return fallbackMessage;
 };
 
 const getStatusCode = (error: unknown): number | null => {
@@ -118,9 +96,24 @@ function ContributionRow({ contribution }: { contribution: ShipmentFeedbackContr
 export default function ShipmentFeedbackDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { logon } = useLocalSearchParams<{ logon: string }>();
+  const { logon, shipmentNumber } = useLocalSearchParams<{
+    logon: string;
+    shipmentNumber?: string;
+  }>();
 
   const decodedLogon = typeof logon === 'string' ? safeDecode(logon) : '';
+  const decodedShipmentNumber =
+    typeof shipmentNumber === 'string' ? safeDecode(shipmentNumber) : '';
+  const navigateToCreate = () => {
+    if (!decodedLogon) return;
+    router.push({
+      pathname: '/(tabs)/shipments/feedback/create/[logon]',
+      params: {
+        logon: decodedLogon,
+        shipmentNumber: decodedShipmentNumber,
+      },
+    } as any);
+  };
 
   const {
     data,
@@ -132,8 +125,10 @@ export default function ShipmentFeedbackDetailScreen() {
   } = useGetFeedbackByLogonQuery(decodedLogon, { skip: !decodedLogon });
 
   const feedback = useMemo(() => mapShipmentFeedback(data), [data]);
+  const feedbackExists = useMemo(() => getShipmentFeedbackExists(data), [data]);
   const statusCode = getStatusCode(error);
   const isNotFound = statusCode === 404;
+  const shouldShowEmptyState = (!isError && feedbackExists === false) || !feedback;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -166,14 +161,25 @@ export default function ShipmentFeedbackDetailScreen() {
             icon="chatbubble-outline"
             title="No feedback found"
             subtitle={`No driver feedback submitted yet for logon ${decodedLogon}.`}
+            actionLabel="Create Feedback"
+            onAction={navigateToCreate}
           />
         ) : isError ? (
-          <ErrorView message={getFeedbackErrorMessage(error)} onRetry={refetch} />
-        ) : !feedback ? (
+          <ErrorView
+            message={getShipmentFeedbackApiErrorMessage(
+              error,
+              'Failed to load feedback details.',
+              'load',
+            )}
+            onRetry={refetch}
+          />
+        ) : shouldShowEmptyState ? (
           <EmptyState
             icon="chatbubble-outline"
             title="No feedback found"
             subtitle={`No driver feedback submitted yet for logon ${decodedLogon}.`}
+            actionLabel="Create Feedback"
+            onAction={navigateToCreate}
           />
         ) : (
           <>

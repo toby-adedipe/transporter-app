@@ -27,18 +27,25 @@ const toRatingStatus = (rating?: string): 'success' | 'warning' | 'danger' | 'ne
   return 'neutral';
 };
 
-export function FeedbackList() {
+interface FeedbackListProps {
+  startDate?: string;
+  endDate?: string;
+}
+
+export function FeedbackList({ startDate, endDate }: FeedbackListProps) {
   const router = useRouter();
   const transporterNumber = useTransporterNumber();
-  const { startDate, endDate } = useAppSelector((state) => state.filters.dateRange);
+  const globalDateRange = useAppSelector((state) => state.filters.dateRange);
+  const effectiveStartDate = startDate ?? globalDateRange.startDate;
+  const effectiveEndDate = endDate ?? globalDateRange.endDate;
   const [page, setPage] = useState(0);
   const [items, setItems] = useState<ShipmentFeedbackRecord[]>([]);
 
   const { data, isLoading, isFetching, isError, refetch } = useSearchFeedbackQuery(
     {
       transporterNumber,
-      feedbackDateStart: startDate,
-      feedbackDateEnd: endDate,
+      feedbackDateStart: effectiveStartDate,
+      feedbackDateEnd: effectiveEndDate,
       page,
       size: PAGE_SIZE,
     },
@@ -50,7 +57,7 @@ export function FeedbackList() {
   useEffect(() => {
     setPage(0);
     setItems([]);
-  }, [endDate, startDate, transporterNumber]);
+  }, [effectiveEndDate, effectiveStartDate, transporterNumber]);
 
   useEffect(() => {
     if (!data) return;
