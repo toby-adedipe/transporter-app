@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Clipboard,
   Platform,
   Pressable,
   ScrollView,
@@ -22,12 +23,21 @@ import {
   getShipmentFeedbackApiErrorMessage,
   getShipmentFeedbackEligibilityMessage,
 } from '@/features/shipmentFeedback/errors';
+import { DriverHosCard } from '@/features/shipmentFeedback/DriverHosCard';
 import {
+  hasCompleteShipmentFeedbackContext,
+  mapDriverHos,
+  mapShipmentFeedback,
+  mapShipmentFeedbackContext,
   mapShipmentFeedbackEligibility,
   mapShipmentNumberByLogon,
+  mergeShipmentFeedbackContext,
 } from '@/features/shipmentFeedback/mapper';
+import { ShipmentContextCard } from '@/features/shipmentFeedback/ShipmentContextCard';
+import { useGetDriverHosQuery } from '@/store/api/driverApi';
 import {
   useCreateFeedbackMutation,
+  useGetFeedbackByLogonQuery,
   useLazyPrecheckFeedbackEligibilityQuery,
 } from '@/store/api/shipmentFeedbackApi';
 import { useGetShipmentsByLogonQuery } from '@/store/api/shipmentsApi';
@@ -35,6 +45,7 @@ import type {
   ShipmentFeedbackArrivalRating,
   ShipmentFeedbackCreateRequest,
   ShipmentFeedbackEligibilityResult,
+  ShipmentFeedbackShipmentContext,
 } from '@/types/api';
 import { borderRadius, colors, fontSize, fontWeight, spacing } from '@/constants/theme';
 
@@ -255,21 +266,96 @@ function Section({
   );
 }
 
+function ReadOnlyMetricRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={styles.metricRow}>
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
+    </View>
+  );
+}
+
 export default function CreateShipmentFeedbackScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
-  const { logon, shipmentNumber } = useLocalSearchParams<{
+  const {
+    logon,
+    shipmentNumber,
+    orderStatus,
+    shipmentStatus,
+    origin,
+    destination,
+    quantity,
+    dispatchDate,
+    truckPlate,
+  } = useLocalSearchParams<{
     logon: string;
     shipmentNumber?: string;
+    orderStatus?: string;
+    shipmentStatus?: string;
+    origin?: string;
+    destination?: string;
+    quantity?: string;
+    dispatchDate?: string;
+    truckPlate?: string;
   }>();
   const decodedLogon = typeof logon === 'string' ? safeDecode(logon) : '';
   const decodedShipmentNumber =
     typeof shipmentNumber === 'string' ? safeDecode(shipmentNumber) : '';
+  const decodedOrderStatus =
+    typeof orderStatus === 'string' ? safeDecode(orderStatus) : '';
+  const decodedShipmentStatus =
+    typeof shipmentStatus === 'string' ? safeDecode(shipmentStatus) : '';
+  const decodedOrigin = typeof origin === 'string' ? safeDecode(origin) : '';
+  const decodedDestination =
+    typeof destination === 'string' ? safeDecode(destination) : '';
+  const decodedQuantity = useMemo(() => {
+    if (typeof quantity !== 'string' || quantity.trim().length === 0) return undefined;
+    const parsed = Number(safeDecode(quantity));
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }, [quantity]);
+  const decodedDispatchDate =
+    typeof dispatchDate === 'string' ? safeDecode(dispatchDate) : '';
+  const decodedTruckPlate =
+    typeof truckPlate === 'string' ? safeDecode(truckPlate) : '';
 
   const [form, setForm] = useState<FeedbackFormState>(createInitialForm);
   const [pickerField, setPickerField] = useState<DateField | null>(null);
   const autoEligibilityToastRef = useRef('');
+  const baseShipmentContext = useMemo(
+    () =>
+      mergeShipmentFeedbackContext({
+        logon: decodedLogon || undefined,
+        shipmentNumber: decodedShipmentNumber || undefined,
+        orderStatus: decodedOrderStatus || undefined,
+        shipmentStatus: decodedShipmentStatus || undefined,
+        origin: decodedOrigin || undefined,
+        destination: decodedDestination || undefined,
+        quantity: decodedQuantity,
+        dispatchDate: decodedDispatchDate || undefined,
+        truckPlate: decodedTruckPlate || undefined,
+      } satisfies ShipmentFeedbackShipmentContext),
+    [
+      decodedDispatchDate,
+      decodedDestination,
+      decodedLogon,
+      decodedOrigin,
+      decodedOrderStatus,
+      decodedQuantity,
+      decodedShipmentNumber,
+      decodedShipmentStatus,
+      decodedTruckPlate,
+    ],
+  );
+  const shouldLookupShipmentContext =
+    Boolean(decodedLogon) && !hasCompleteShipmentFeedbackContext(baseShipmentContext);
 
   const {
     data: shipmentLookupData,
@@ -278,19 +364,94 @@ export default function CreateShipmentFeedbackScreen() {
     isLoading: isShipmentLookupLoading,
     refetch: refetchShipmentLookup,
   } = useGetShipmentsByLogonQuery(decodedLogon, {
-    skip: Boolean(decodedShipmentNumber) || !decodedLogon,
+    skip: !shouldLookupShipmentContext,
   });
-
-  const resolvedShipmentNumber =
-    decodedShipmentNumber || mapShipmentNumberByLogon(shipmentLookupData);
+  const {
+    data: feedbackByLogonData,
+    isFetching: isFeedbackByLogonFetching,
+  } = useGetFeedbackByLogonQuery(decodedLogon, {
+    skip: !decodedLogon,
+  });
 
   const [createFeedback, { isLoading: isSubmitting }] = useCreateFeedbackMutation();
   const [runEligibilityCheck, eligibilityState] = useLazyPrecheckFeedbackEligibilityQuery();
   const pickerDate = useMemo(() => fromIsoDate(form.feedbackDate), [form.feedbackDate]);
+  const feedbackRecord = useMemo(
+    () => mapShipmentFeedback(feedbackByLogonData),
+    [feedbackByLogonData],
+  );
   const eligibilityResult = useMemo<ShipmentFeedbackEligibilityResult | null>(() => {
     if (!eligibilityState.data) return null;
     return mapShipmentFeedbackEligibility(eligibilityState.data);
   }, [eligibilityState.data]);
+  const resolvedShipmentNumber =
+    decodedShipmentNumber ||
+    feedbackRecord?.shipmentNumber ||
+    mapShipmentNumberByLogon(shipmentLookupData);
+  const shipmentContext = useMemo(
+    () => {
+      const eligibilityContext = eligibilityResult?.computedContext
+        ? mergeShipmentFeedbackContext(eligibilityResult.computedContext)
+        : null;
+
+      return mergeShipmentFeedbackContext(
+        baseShipmentContext,
+        mapShipmentFeedbackContext(shipmentLookupData),
+        feedbackRecord,
+        eligibilityContext,
+      );
+    },
+    [baseShipmentContext, eligibilityResult?.computedContext, feedbackRecord, shipmentLookupData],
+  );
+  const resolvedDriverId = shipmentContext?.driverSapId;
+  const { data: driverHosData, isFetching: isDriverHosFetching } = useGetDriverHosQuery(
+    resolvedDriverId ?? 0,
+    {
+      skip: !resolvedDriverId,
+    },
+  );
+  const driverHosRecord = useMemo(() => mapDriverHos(driverHosData), [driverHosData]);
+  const systemMetricsRows = useMemo(
+    () => {
+      const rows: Array<{ label: string; value: number }> = [];
+      const feedbackHosHours = feedbackRecord?.hosHoursGenerated ?? feedbackRecord?.effectiveHosHours;
+
+      if (feedbackHosHours !== undefined && feedbackHosHours !== null) {
+        rows.push({ label: 'System HOS Hours', value: feedbackHosHours });
+      }
+
+      const violations = [
+        {
+          label: 'System Total Violations',
+          value:
+            feedbackRecord?.violationsTotalGenerated ?? feedbackRecord?.effectiveViolationsTotal,
+        },
+        {
+          label: 'System OS Violations',
+          value: feedbackRecord?.violationsOsGenerated ?? feedbackRecord?.effectiveViolationsOs,
+        },
+        {
+          label: 'System HB Violations',
+          value: feedbackRecord?.violationsHbGenerated ?? feedbackRecord?.effectiveViolationsHb,
+        },
+        {
+          label: 'System HA Violations',
+          value: feedbackRecord?.violationsHaGenerated ?? feedbackRecord?.effectiveViolationsHa,
+        },
+        {
+          label: 'System CD Violations',
+          value: feedbackRecord?.violationsCdGenerated ?? feedbackRecord?.effectiveViolationsCd,
+        },
+      ].filter(
+        (entry): entry is { label: string; value: number } =>
+          entry.value !== undefined && entry.value !== null,
+      );
+
+      return rows.concat(violations);
+    },
+    [feedbackRecord],
+  );
+  const autoMetricsGeneratedAt = feedbackRecord?.autoMetricsGeneratedAt;
 
   const setField = <K extends keyof FeedbackFormState>(field: K, value: FeedbackFormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -301,6 +462,14 @@ export default function CreateShipmentFeedbackScreen() {
       showToast({ message, tone });
     },
     [showToast],
+  );
+
+  const handleCopyLogon = useCallback(
+    (value: string) => {
+      Clipboard.setString(value);
+      showFeedbackToast('Shipment logon copied.', 'info');
+    },
+    [showFeedbackToast],
   );
 
   const onChangePicker = (event: DateTimePickerEvent, selectedDate?: Date) => {
@@ -486,12 +655,12 @@ export default function CreateShipmentFeedbackScreen() {
       ) : null}
 
       <ScrollView contentContainerStyle={styles.content}>
-        {isShipmentLookupLoading ? (
+        {!resolvedShipmentNumber && isShipmentLookupLoading ? (
           <>
             <SkeletonLoader width="100%" height={120} style={{ marginBottom: spacing.base }} />
             <SkeletonLoader width="100%" height={160} />
           </>
-        ) : isShipmentLookupError ? (
+        ) : !resolvedShipmentNumber && isShipmentLookupError ? (
           <ErrorView
             message={getShipmentFeedbackApiErrorMessage(
               shipmentLookupError,
@@ -507,53 +676,62 @@ export default function CreateShipmentFeedbackScreen() {
           />
         ) : (
           <>
-            <Card variant="elevated" padding="base">
-              <Text style={styles.summaryLabel}>Shipment Logon</Text>
-              <Text style={styles.summaryValue}>{decodedLogon}</Text>
-              {resolvedShipmentNumber ? (
-                <>
-                  <Text style={[styles.summaryLabel, styles.summaryLabelSpacing]}>
-                    Shipment Number
+            <ShipmentContextCard
+              context={shipmentContext}
+              variant="elevated"
+              density="compact"
+              onCopyLogon={handleCopyLogon}
+              footer={
+                eligibilityState.isFetching ? (
+                  <Text style={styles.summaryHint}>
+                    Checking feedback eligibility for this shipment.
                   </Text>
-                  <Text style={styles.summarySecondaryValue}>{resolvedShipmentNumber}</Text>
-                </>
-              ) : null}
-
-              {eligibilityState.isFetching ? (
-                <Text style={styles.summaryHint}>Checking feedback eligibility for this shipment.</Text>
-              ) : eligibilityState.isError ? (
-                <View style={styles.warningBanner}>
-                  <Ionicons
-                    name="alert-circle-outline"
-                    size={18}
-                    color={colors.warning}
-                  />
-                  <Text style={styles.warningText}>
-                    {getShipmentFeedbackApiErrorMessage(
-                      eligibilityState.error,
-                      'We could not complete the feedback eligibility check right now. Please try again.',
-                      'eligibility',
-                    )}
+                ) : eligibilityState.isError ? (
+                  <View style={styles.warningBanner}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={18}
+                      color={colors.warning}
+                    />
+                    <Text style={styles.warningText}>
+                      {getShipmentFeedbackApiErrorMessage(
+                        eligibilityState.error,
+                        'We could not complete the feedback eligibility check right now. Please try again.',
+                        'eligibility',
+                      )}
+                    </Text>
+                  </View>
+                ) : eligibilityResult && !eligibilityResult.eligible ? (
+                  <View style={styles.warningBanner}>
+                    <Ionicons name="warning-outline" size={18} color={colors.warning} />
+                    <Text style={styles.warningText}>
+                      {getShipmentFeedbackEligibilityMessage(eligibilityResult)}
+                    </Text>
+                  </View>
+                ) : eligibilityResult?.eligible ? (
+                  <Text style={styles.summaryHint}>
+                    Eligibility confirmed. The check will run again before submission.
                   </Text>
-                </View>
-              ) : eligibilityResult && !eligibilityResult.eligible ? (
-                <View style={styles.warningBanner}>
-                  <Ionicons name="warning-outline" size={18} color={colors.warning} />
-                  <Text style={styles.warningText}>
-                    {getShipmentFeedbackEligibilityMessage(eligibilityResult)}
-                  </Text>
-                </View>
-              ) : eligibilityResult?.eligible ? (
-                <Text style={styles.summaryHint}>
-                  Eligibility confirmed. The check will run again before submission.
-                </Text>
-              ) : null}
-            </Card>
+                ) : null
+              }
+            />
 
             <Section title="Feedback Form" subtitle="Fill in trip feedback details.">
               <View style={styles.fieldBlock}>
                 <Text style={styles.fieldLabel}>Feedback Date *</Text>
                 <DateChip value={form.feedbackDate} onPress={() => setPickerField('feedbackDate')} />
+                {pickerField && Platform.OS === 'ios' ? (
+                  <Card variant="default" padding="base">
+                    <DateTimePicker
+                      mode="date"
+                      display="spinner"
+                      value={pickerDate}
+                      onChange={onChangePicker}
+                      maximumDate={new Date()}
+                    />
+                    <Button title="Done" size="sm" onPress={() => setPickerField(null)} />
+                  </Card>
+                ) : null}
               </View>
               <TextAreaField
                 label="Driver Feedback"
@@ -636,7 +814,40 @@ export default function CreateShipmentFeedbackScreen() {
               />
             </Section>
 
-            <Section title="Violations">
+            <DriverHosCard hos={driverHosRecord} isLoading={isDriverHosFetching} title="Live Driver HOS" />
+
+            <Section
+              title="System Metrics"
+              subtitle="Read-only values generated from shipment feedback records."
+            >
+              {systemMetricsRows.length > 0 ? (
+                <>
+                  {systemMetricsRows.map((entry) => (
+                    <ReadOnlyMetricRow
+                      key={entry.label}
+                      label={entry.label}
+                      value={String(entry.value)}
+                    />
+                  ))}
+                  {autoMetricsGeneratedAt ? (
+                    <Text style={styles.systemMetricsHint}>
+                      Generated at {new Date(autoMetricsGeneratedAt).toLocaleString()}
+                    </Text>
+                  ) : null}
+                </>
+              ) : isFeedbackByLogonFetching ? (
+                <Text style={styles.systemMetricsHint}>Loading system-generated metrics.</Text>
+              ) : (
+                <Text style={styles.systemMetricsHint}>
+                  System-generated metrics are not available for this shipment yet.
+                </Text>
+              )}
+            </Section>
+
+            <Section
+              title="Manual Violations"
+              subtitle="Enter the violations you want to submit with this feedback."
+            >
               <TextField
                 label="Total Violations"
                 value={form.violationsTotalManual}
@@ -700,19 +911,6 @@ export default function CreateShipmentFeedbackScreen() {
             </View>
           </>
         )}
-
-        {pickerField && Platform.OS === 'ios' ? (
-          <Card variant="default" padding="base">
-            <DateTimePicker
-              mode="date"
-              display="spinner"
-              value={pickerDate}
-              onChange={onChangePicker}
-              maximumDate={new Date()}
-            />
-            <Button title="Done" size="sm" onPress={() => setPickerField(null)} />
-          </Card>
-        ) : null}
       </ScrollView>
     </View>
   );
@@ -773,16 +971,14 @@ const styles = StyleSheet.create({
   summaryHint: {
     fontSize: fontSize.sm,
     color: colors.textSecondary,
-    lineHeight: 20,
-    marginTop: spacing.sm,
+    lineHeight: 18,
   },
   warningBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.sm,
-    marginTop: spacing.base,
+    gap: spacing.xs,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs + 2,
     borderRadius: borderRadius.md,
     backgroundColor: colors.warningLight,
   },
@@ -790,7 +986,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSize.sm,
     color: colors.textPrimary,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   sectionTitle: {
     fontSize: fontSize.base,
@@ -806,6 +1002,30 @@ const styles = StyleSheet.create({
   sectionBody: {
     gap: spacing.base,
     marginTop: spacing.base,
+  },
+  metricRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.base,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  metricLabel: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+  },
+  metricValue: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+  },
+  systemMetricsHint: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    lineHeight: 18,
   },
   fieldBlock: {
     gap: spacing.xs,

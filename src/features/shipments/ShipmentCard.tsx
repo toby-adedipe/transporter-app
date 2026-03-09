@@ -9,6 +9,7 @@ interface ShipmentCardProps {
   logon?: string;
   truckPlate?: string;
   status?: string;
+  quantity?: number;
   origin?: string;
   destination?: string;
   dispatchDate?: string;
@@ -22,6 +23,7 @@ export function ShipmentCard({
   logon,
   truckPlate,
   status,
+  quantity,
   origin,
   destination,
   dispatchDate,
@@ -37,6 +39,9 @@ export function ShipmentCard({
         <StatusBadge label={formatStatus(status)} status={mapTruckStatus(status)} />
       </View>
       {truckPlate && <Text style={styles.detail}>Truck: {truckPlate}</Text>}
+      {quantity !== undefined && quantity !== null ? (
+        <Text style={styles.detail}>Quantity: {quantity}</Text>
+      ) : null}
       {(origin || destination) && (
         <View style={styles.routeRow}>
           <Text style={styles.route} numberOfLines={1}>{origin ?? 'N/A'}</Text>

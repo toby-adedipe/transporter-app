@@ -3,6 +3,27 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL } from '@/constants/config';
 
+const LOG_CHUNK_SIZE = 1500;
+
+const logPayloadInChunks = (prefix: string, payload: unknown) => {
+  const serialized =
+    typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+
+  if (!serialized) {
+    console.log(prefix, payload);
+    return;
+  }
+
+  const totalChunks = Math.ceil(serialized.length / LOG_CHUNK_SIZE);
+  console.log(`${prefix} (length=${serialized.length}, chunks=${totalChunks})`);
+
+  for (let index = 0; index < totalChunks; index += 1) {
+    const start = index * LOG_CHUNK_SIZE;
+    const chunk = serialized.slice(start, start + LOG_CHUNK_SIZE);
+    console.log(`${prefix} [${index + 1}/${totalChunks}] ${chunk}`);
+  }
+};
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
   prepareHeaders: async (headers, { getState }) => {
@@ -25,9 +46,9 @@ const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> =
   console.log(`[API] → ${typeof args === 'string' ? 'GET' : (args.method ?? 'GET')} ${url}`);
   const result = await rawBaseQuery(args, api, extraOptions);
   if (result.error) {
-    console.log(`[API] ✗ ${url}`, JSON.stringify(result.error, null, 2));
+    logPayloadInChunks(`[API] ✗ ${url}`, result.error);
   } else if (result.data) {
-    console.log(`[API] ✓ ${url}`, JSON.stringify(result.data, null, 2).slice(0, 500));
+    logPayloadInChunks(`[API] ✓ ${url}`, result.data);
     const body = result.data as { isSuccessful?: boolean; message?: string };
     if (body.isSuccessful === false) {
       console.log(`[API] ✗ Business error: ${body.message}`);

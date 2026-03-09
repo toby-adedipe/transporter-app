@@ -24,6 +24,12 @@ interface ShipmentOption {
   logon: string;
   shipmentNumber: string;
   truckPlate?: string;
+  orderStatus?: string;
+  shipmentStatus?: string;
+  quantity?: number;
+  origin?: string;
+  destination?: string;
+  dispatchDate?: string;
 }
 
 const pad = (value: number): string => String(value).padStart(2, '0');
@@ -109,9 +115,38 @@ export default function ShipmentFeedbackIndexScreen() {
           : '';
       const truckPlate =
         typeof entry.truckPlate === 'string' ? entry.truckPlate : undefined;
+      const orderStatus =
+        typeof entry.orderStatus === 'string' ? entry.orderStatus : undefined;
+      const shipmentStatus =
+        typeof entry.shipmentStatus === 'string'
+          ? entry.shipmentStatus
+          : typeof entry.leadTimeSla === 'string'
+          ? entry.leadTimeSla
+          : undefined;
+      const quantity =
+        typeof entry.quantity === 'number'
+          ? entry.quantity
+          : typeof entry.quantity === 'string'
+          ? Number(entry.quantity)
+          : undefined;
+      const origin = typeof entry.plant === 'string' ? entry.plant : undefined;
+      const destination =
+        typeof entry.customerName === 'string' ? entry.customerName : undefined;
+      const dispatchDate =
+        typeof entry.dispatchDate === 'string' ? entry.dispatchDate : undefined;
 
       if (!logon || !shipmentNumber || deduped.has(logon)) continue;
-      deduped.set(logon, { logon, shipmentNumber, truckPlate });
+      deduped.set(logon, {
+        logon,
+        shipmentNumber,
+        truckPlate,
+        orderStatus,
+        shipmentStatus,
+        quantity,
+        origin,
+        destination,
+        dispatchDate,
+      });
     }
 
     return Array.from(deduped.values());
@@ -171,6 +206,14 @@ export default function ShipmentFeedbackIndexScreen() {
       params: {
         logon: selectedShipment.logon,
         shipmentNumber: selectedShipment.shipmentNumber,
+        orderStatus: selectedShipment.orderStatus ?? '',
+        shipmentStatus: selectedShipment.shipmentStatus ?? '',
+        origin: selectedShipment.origin ?? '',
+        destination: selectedShipment.destination ?? '',
+        quantity:
+          selectedShipment.quantity !== undefined ? String(selectedShipment.quantity) : '',
+        dispatchDate: selectedShipment.dispatchDate ?? '',
+        truckPlate: selectedShipment.truckPlate ?? '',
       },
     } as any);
   };

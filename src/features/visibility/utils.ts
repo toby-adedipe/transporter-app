@@ -3,6 +3,9 @@ export function mapTruckStatus(
 ): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
   if (!status) return 'neutral';
   const s = status.toUpperCase();
+  if (s.includes('FINISHED') || s.includes('COMPLETED')) return 'success';
+  if (s.includes('NOT_FINISHED') || s.includes('PENDING')) return 'warning';
+  if (s.includes('CANCELLED') || s.includes('FAILED')) return 'danger';
   if (s.includes('TRANSIT') || s.includes('LOADED')) return 'info';
   if (s.includes('CUSTOMER') || s.includes('OFFLOAD')) return 'success';
   if (s.includes('NOT_TRACKING') || s.includes('IDLE')) return 'danger';

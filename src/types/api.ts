@@ -447,25 +447,45 @@ export interface ShipmentFeedbackCreateRequest {
 }
 
 export interface ShipmentFeedbackContribution {
+  id?: number;
   actorType?: string;
   actorId?: string;
   actorName?: string;
+  userId?: number;
+  userName?: string;
   action?: string;
   createdAt?: string;
+  remarks?: string;
   changes?: Record<string, unknown>;
 }
 
-export interface ShipmentFeedbackRecord {
-  id?: number;
-  feedbackExists?: boolean;
+export interface ShipmentFeedbackShipmentContext {
   logon?: string;
   shipmentNumber?: string;
+  orderStatus?: string;
+  shipmentStatus?: string;
+  origin?: string;
+  destination?: string;
+  customerName?: string;
+  customerLocation?: string;
+  quantity?: number;
+  dispatchDate?: string;
+  truckPlate?: string;
+  driverName?: string;
+  driverSapId?: number;
+}
+
+export interface ShipmentFeedbackRecord extends ShipmentFeedbackShipmentContext {
+  id?: number;
+  feedbackExists?: boolean;
+  requiresDriverAcknowledgment?: boolean;
+  driverAcknowledgedAt?: string;
+  driverAcknowledgedByUserId?: number;
+  driverAcknowledgedByName?: string;
   transporterNumber?: string;
+  transporterName?: string;
   region?: string;
   feedbackDate?: string;
-  driverSapId?: number;
-  driverName?: string;
-  truckPlate?: string;
   driverFeedbackText?: string;
   otherInformationText?: string;
   delayAtCustomer?: boolean;
@@ -485,7 +505,26 @@ export interface ShipmentFeedbackRecord {
   violationsHbManual?: number;
   violationsHaManual?: number;
   violationsCdManual?: number;
+  hosHoursGenerated?: number;
+  violationsTotalGenerated?: number;
+  violationsOsGenerated?: number;
+  violationsHbGenerated?: number;
+  violationsHaGenerated?: number;
+  violationsCdGenerated?: number;
+  autoMetricsGeneratedAt?: string;
+  effectiveHosHours?: number;
+  effectiveViolationsTotal?: number;
+  effectiveViolationsOs?: number;
+  effectiveViolationsHb?: number;
+  effectiveViolationsHa?: number;
+  effectiveViolationsCd?: number;
   manualOverrideReason?: string;
+  createdByUserId?: number;
+  createdByName?: string;
+  updatedByUserId?: number;
+  updatedByName?: string;
+  createdDate?: string;
+  updatedDate?: string;
   createdAt?: string;
   updatedAt?: string;
   contributions: ShipmentFeedbackContribution[];
@@ -504,5 +543,30 @@ export interface ShipmentFeedbackEligibilityResult {
   eligible: boolean;
   reasons: string[];
   summary?: string;
+  computedContext?: ShipmentFeedbackShipmentContext & {
+    transporterNumber?: string;
+    transporterName?: string;
+    driverBlocked?: boolean;
+    driverRedRisk?: boolean;
+    truckTracking?: boolean;
+    offloadedDateTimeAvailable?: boolean;
+    resolvedOffloadedDateTime?: string;
+  };
+  raw: unknown;
+}
+
+export interface DriverHosRecord {
+  driverId?: number;
+  driverSapId?: number;
+  currentStatusDescription?: string;
+  isOnDuty?: boolean;
+  dailyTimeBeforeRest?: string;
+  weeklyTimeBeforeRest?: string;
+  dailyAvailableDrivingRolling?: string;
+  availableDrivingBeforeBreak?: string;
+  dayDrivingUsed?: string;
+  nightDrivingUsed?: string;
+  expectedRestDuration?: string;
+  lastUpdated?: string;
   raw: unknown;
 }

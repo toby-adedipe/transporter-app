@@ -55,10 +55,31 @@ export function ShipmentList() {
           <ShipmentCard
             logon={logon}
             truckPlate={item.truckPlate}
-            status={item.shipmentStatus ?? item.leadTimeSla}
+            status={item.orderStatus ?? item.shipmentStatus ?? item.leadTimeSla}
+            quantity={typeof item.quantity === 'number' ? item.quantity : undefined}
             origin={item.plant}
             destination={item.customerName}
             dispatchDate={item.dispatchDate ? new Date(item.dispatchDate).toLocaleDateString() : undefined}
+            onPress={
+              canViewFeedback
+                ? () =>
+                    router.push({
+                      pathname: '/(tabs)/shipments/[id]',
+                      params: {
+                        id: logon,
+                        shipmentNumber: item.shipmentNumber ?? '',
+                        orderStatus: item.orderStatus ?? '',
+                        shipmentStatus: item.shipmentStatus ?? item.leadTimeSla ?? '',
+                        origin: item.plant ?? '',
+                        destination: item.customerName ?? '',
+                        quantity:
+                          typeof item.quantity === 'number' ? String(item.quantity) : '',
+                        dispatchDate: item.dispatchDate ?? '',
+                        truckPlate: item.truckPlate ?? '',
+                      },
+                    } as any)
+                : undefined
+            }
             onViewFeedback={
               canViewFeedback
                 ? () =>
@@ -67,6 +88,14 @@ export function ShipmentList() {
                       params: {
                         logon,
                         shipmentNumber: item.shipmentNumber ?? '',
+                        orderStatus: item.orderStatus ?? '',
+                        shipmentStatus: item.shipmentStatus ?? item.leadTimeSla ?? '',
+                        origin: item.plant ?? '',
+                        destination: item.customerName ?? '',
+                        quantity:
+                          typeof item.quantity === 'number' ? String(item.quantity) : '',
+                        dispatchDate: item.dispatchDate ?? '',
+                        truckPlate: item.truckPlate ?? '',
                       },
                     } as any)
                 : undefined
